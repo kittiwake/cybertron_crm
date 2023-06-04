@@ -1,0 +1,43 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">CYBERTRON</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'timetable' %}">Расписание</a>
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'workingtime' %}">Журнал рабочих часов</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'visitors' 0 0 %}">Журнал посещений</a>
+            </li>
+            {% endif %}
+            </ul>
+            
+            <span class="navbar_text">
+                {% if user.is_authenticated %}
+                <!-- <span>{{ user.get_username }}</span> | <a href="{% url 'logout' %}?next={{request.path}}">Выход</a>
+                <p>{{ user.get_username }}</p> -->
+                    <span class="navbar_text">
+                        <a href="#" class="link-warning">{{ user.first_name }}</a> | 
+                        <a href="{% url 'logout' %}" class="link-warning">Выйти</a>
+                    </span>
+
+                {% else %}
+                <!-- <a href="{% url 'register' %}">Регистрация</a> | <a href="{% url 'login' %}">Вход</a> -->
+                <span class="navbar_text">
+                    <a href="{% url 'login' %}" class="link-warning">Войти</a> | <a href="{% url 'register' %}" class="link-warning">Регистрация</a>
+                </span>
+                {% endif %}
+            </span>
+
+        </div>
+    </div>
+</nav>
+
+

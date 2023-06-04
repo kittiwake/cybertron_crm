@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load index %}
+
+{% block sidebar %}
+  <ul class="list-group">
+    <a href="{% url 'booking' 0 course %}" class="list-group-item list-group-item-action">Все</a>
+    {% for brch in branchs %}
+    <a href="{% url 'booking' brch.pk course %}" class="list-group-item list-group-item-action">{{ brch }}</a>
+    {% endfor %}
+  </ul>
+  <br>
+  <ul class="list-group">
+    <a href="{% url 'booking' br 0 %}" class="list-group-item list-group-item-action">Все</a>
+    {% for cour in courses %}
+    <a href="{% url 'booking' br cour.pk %}" class="list-group-item list-group-item-action">{{ cour }}</a>
+    {% endfor %}
+  </ul>
+{% endblock  %}
+
+
+{% block content %}
+<table class="table table-primary">
+    <thead class="table-light">
+      <tr>
+        <th scope="col">Фамилия</th>
+        <th scope="col">Предмет</th>
+        <th scope="col">Филиал</th>
+        {% if course and br%}
+        {% for t in tt %}
+        <td scope="col">
+          <p>{{ t.date|date:"d.m" }}</p>
+          <p>{{ t.timetb }}</p>
+        </td>
+        {% endfor %}
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+      <!-- что уже запланировано -->
+      {% for t in booking %}
+      <tr>
+        <th scope="col">{{t.id_client}}</th>
+        <td scope="col">
+          {{ t.id_timetable.id_course }}
+        </td>
+        <td scope="col">{{ t.id_timetable.id_branch }}</td>
+
+        {% if course and br%}
+        {% for tb in tt %}
+        <td scope="col">
+          {% if tb.timetb == t.id_timetable.timetb %}
+          <p>
+            <button type="submit" class="btn btn-success btn-sm">Отменить</button>
+          </p>
+          {% endif %}
+        </td>
+        {% endfor %}
+        {% endif %}      
+      </tr>
+      {% endfor %}
+
+      <!-- варианты на планы -->
+
+      <thead class="table-light">
+      <tr>
+        <td colspan="3">Варианты былые</td>
+        {% if course and br%}
+        {% for tb in tt %}
+        <th></th>
+        {% endfor %}
+        {% endif %}      
+      </tr>
+      </thead>
+
+      {% for t in visits %}
+      <tr>
+        <th scope="col">{{t.id_client__surname}} {{t.id_client__name}}</th>
+        <td scope="col">
+          {{ t.id_timetable_id__id_course__title }}
+        </td>
+        <td scope="col">{{ t.id_timetable_id__id_branch__title }}</td>
+
+        {% if course and br%}
+        {% for tb in tt %}
+        <form action="" method="post">
+          <td scope="col">
+            {% csrf_token %}
+            <input type="hidden" name="id_client" value="{{ t.id_client__id }}">
+            <input type="hidden" name="id_timetable" value="{{ tb.id }}">
+            <input type="hidden" name="date" value="{{ tb.date|date:'Y-m-d' }}">
+            <button type="submit" class="btn btn-danger btn-sm">Бронировать</button>
+          </td>
+        </form>
+  {% endfor %}
+        {% endif %}
+      </tr>
+      {% endfor %}
+
+      <!-- новички -->
+
+      <thead class="table-light">
+      <tr>
+        <td colspan="3">Новички</td>
+        {% if course and br%}
+        {% for tb in tt %}
+        <th></th>
+        {% endfor %}
+        {% endif %}      
+      </tr>
+      </thead>
+
+      {% for t in newpeople %}
+            <tr>
+              <th scope="col">{{t.surname}} {{t.name}}</th>
+              <td scope="col">
+                {% if course %}
+                {{ courses|dictsort:"id"|index:course }}
+                {% else %}
+                Выберите курс
+                {% endif %}
+              </td>
+              <td scope="col">
+                {% if course %}
+                {{ branchs|dictsort:"id"|index:br }}
+                {% else %}
+                Выберите филиал
+                {% endif %}
+              </td>
+      
+              {% if course and br%}
+              {% for tb in tt %}
+              <form action="" method="post">
+                <td scope="col">
+                  {% csrf_token %}
+                  <input type="text" name="id_client" value="{{ t.id }}">
+                  <input type="text" name="id_timetable" value="{{ tb.id }}">
+                  <input type="text" name="date" value="{{ tb.date|date:'Y-m-d' }}">
+                  <button type="submit" class="btn btn-danger btn-sm">Бронировать</button>
+                </td>
+              </form>
+
+              {% endfor %}
+              {% endif %}
+            </tr>
+            {% endfor %}
+            <!-- все остальные -->
+            <thead class="table-light">
+              <tr>
+                <td colspan="3">Записать ученика на другой курс или в другой филиал можно через администратора</td>
+                {% if course and br%}
+                {% for tb in tt %}
+                <th></th>
+                {% endfor %}
+                {% endif %}      
+              </tr>
+              </thead>
+            </tbody>
+  </table>
+
+  
+{% endblock  %}
+

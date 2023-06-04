@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+
+{% block sidebar %}
+  <ul class="list-group">
+    <a href="{% url 'timetable' %}" class="list-group-item list-group-item-action">Все</a>
+    {% for brch in branchs %}
+    <a href="{% url 'brtimetable' brch.pk %}" class="list-group-item list-group-item-action">{{ brch }}</a>
+    {% endfor %}
+  </ul>
+{% endblock  %}
+
+{% block content %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Время</th>
+        <th scope="col">Предмет</th>
+        <th scope="col">Продолжительность</th>
+        <th scope="col">Филиал</th>
+        <th scope="col">Преподаватель</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+
+  {% for it in d %}
+      <tr>
+        <th scope="row" class="table-active" colspan="5">{{ it.dw }}</th>
+      </tr>
+      {% for item in it.tt %}
+      <tr>
+        <th scope="row">{{ item.timetb }}</th>
+        <td>{{ item.id_course }}</td>
+        <td>{{ item.duration }}</td>
+        <td>{{ item.id_branch }}</td>
+        <td>{{ item.id_teacher.last_name}} {{item.id_teacher.first_name }}</td>
+        
+        <!-- {% if user.is_authenticated and 'manager' in user.groups.all %} -->
+        <td>
+          <form action="" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="del">
+            <input type="hidden" name="pk" value="{{ item.pk }}">
+            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+
+          </form>
+        </td>
+        <!-- {% endif %} -->
+      </tr> 
+      {% endfor %}
+
+  {% endfor %}
+</tbody>
+</table>
+
+
+<!-- {% if user.is_authenticated and 'manager' in user.groups.all%} -->
+
+<div>
+  Добавить в расписание
+</div>
+
+<form action="" method="post">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="add">
+  <div class="input-group mb-3">
+    {% for field in form %}   
+        {{ field }}
+    
+{% endfor %}
+  <button type="submit" class="btn btn-primary btn-sm">Добавить</button>
+  </div>
+</form>
+<!-- {% endif %} -->
+
+
+{% endblock  %}
+
+

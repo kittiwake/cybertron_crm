@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+  <ul class="list-group">
+    <a href="{% url 'visitors' 0 course %}" class="list-group-item list-group-item-action">Все</a>
+    {% for brch in branchs %}
+    <a href="{% url 'visitors' brch.pk course %}" class="list-group-item list-group-item-action">{{ brch }}</a>
+    {% endfor %}
+  </ul>
+  <br>
+  <ul class="list-group">
+    <a href="{% url 'visitors' br 0 %}" class="list-group-item list-group-item-action">Все</a>
+    {% for cour in courses %}
+    <a href="{% url 'visitors' br cour.pk %}" class="list-group-item list-group-item-action">{{ cour }}</a>
+    {% endfor %}
+  </ul>
+{% endblock  %}
+
+
+{% block content %}
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Фамилия</th>
+        <th scope="col">Предмет</th>
+        <th scope="col">Филиал</th>
+        <td scope="col">Дата</td>
+        <td scope="col">Время</td>
+        <td scope="col"></td>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+      {% for ob in booking %}
+      <tr>
+        <th scope="col">{{ob.id_client}}</th>
+        <td scope="col">{{ob.id_timetable.id_course}}</td>
+        <td scope="col">{{ob.id_timetable.id_branch}}</td>
+        <td scope="col">{{ob.date}}</td>
+        <td scope="col">{{ob.id_timetable.timetb}}</td>
+        <td scope="col">
+          <form action="" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="pk" value="{{ ob.pk }}">
+            <input type="hidden" name="action" value="add">
+            <button type="submit" class="btn btn-success btn-sm">Подтвердить</button>
+          </form>
+        </td>
+        <td scope="col">
+          <form action="" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="pk" value="{{ ob.pk }}">
+            <input type="hidden" name="action" value="del">
+            <button type="submit" class="btn btn-danger btn-sm">Отсутствовал(а)</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock  %}
+

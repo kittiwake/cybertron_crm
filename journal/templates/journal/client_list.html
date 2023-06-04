@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load index %}
+
+{% block content %}
+
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Имя</th>
+        <th scope="col">Возраст</th>
+        <th scope="col">Адрес</th>
+        <th scope="col">Родитель</th>
+        <th scope="col">Контакт</th>
+        <th scope="col">Действия</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for client in client_list %}
+      <tr>
+        <th scope="row">{{ forloop.counter }}</th>
+        <td>{{ client.surname}} {{ client.name}}</td>
+        <td>{{ client.birthday}}</td>
+        <td>{{ client.address}}</td>
+        <td>{{ client.guardian}}</td>
+        <td>{{ client.mobile_phone}}</td>
+
+        <td>кнопки</td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+
+  {% if form %}
+  <div class="bg-primary text-white">
+    <h6>Добавить ученика</h6>
+    </div>
+  <form method="post" class="row g-3">
+    {% csrf_token %}
+
+{{ form.media }}
+<!-- 'surname', 'name', 'birthday', 'guardian', 'mobile_phone', 'address' -->
+      <div class="col-12 bg-light">
+        <div class="row">
+          <div class="col-5">
+            <label for="{{ form.surname.id_for_label }}" class="form-label">{{ form.surname.label }}</label>
+            {{ form.surname }}
+            <div class="invalid-feedback">
+              {{ form.surname.errors }}
+            </div>  
+          </div>
+          <div class="col-5">
+            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+            <div class="invalid-feedback">
+              {{ form.name.errors }}
+            </div>  
+          </div>
+          <div class="col-2">
+            <label for="{{ form.birthday.id_for_label }}" class="form-label">{{ form.birthday.label }}</label>
+            {{ form.birthday }}
+            <div class="invalid-feedback">
+              {{ form.birthday.errors }}
+            </div>  
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-5">
+            <label for="{{ form.guardian.id_for_label }}" class="form-label">{{ form.guardian.label }}</label>
+          {{ form.guardian }}
+            <div class="invalid-feedback">
+              {{ form.guardian.errors }}
+            </div>  
+          </div>
+          <div class="col-5">
+            <label for="{{ form.mobile_phone.id_for_label }}" class="form-label">{{ form.mobile_phone.label }}</label>
+            {{ form.mobile_phone }}
+            <div class="invalid-feedback">
+              {{ form.mobile_phone.errors }}
+            </div>  
+          </div>
+        </div>  
+        <div class="row">
+          <div class="col-6">
+            <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
+            {{ form.address }}
+            <div class="invalid-feedback">
+              {{ form.address.errors }}
+            </div>  
+          </div>
+          <div class="col-2">
+            <input type="submit" class="btn btn-primary" value="Добавить">
+          </div>    
+        </div>  
+      </div>
+
+  </form>
+  {% endif %}
+
+
+
+{% endblock content %}

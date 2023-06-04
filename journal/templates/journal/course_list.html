@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load index %}
+
+{% block content %}
+
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Название</th>
+
+        <th scope="col">Действия</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for course in course_list %}
+      <tr>
+        <th scope="row">{{ forloop.counter }}</th>
+        <td>{{ course.title}}</td>
+
+        <td>кнопки</td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+  <form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+  </form>
+{% endblock content %}

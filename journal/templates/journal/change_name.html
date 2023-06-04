@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if form.errors %}
+  <p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+{% if next %}
+  {% if user.is_authenticated %}
+    <p>Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+  {% else %}
+    <p>Please login to see this page.</p>
+  {% endif %}
+{% endif %}
+
+<form method="POST" action="">
+    {% csrf_token %}
+        <h3>Register Profile</h3>
+        <table>
+
+
+            <tr>
+                <td>{{ change_form.first_name.label_tag }}</td>
+                <td>{{ change_form.first_name }}</td>
+                <td><div class="invalid_feedback">
+                    {{ change_form.first_name.errors }}
+                </div></td>
+            </tr>
+            <tr>
+                <td>{{ change_form.last_name.label_tag }}</td>
+                <td>{{ change_form.last_name }}</td>
+                <td><div class="invalid_feedback">
+                    {{ change_form.last_name.errors }}
+                </div></td>
+            </tr>
+
+            <tr>
+                <td>{{ change_form.email.label_tag }}</td>
+                <td>{{ change_form.email }}</td>
+                <td><div class="invalid_feedback">
+                    {{ change_form.email.errors }}
+                </div></td>
+            </tr>
+
+            <tr>
+                <td>{{ change_form.is_active.label_tag }}</td>
+                <td>{{ change_form.is_active }}</td>
+                <td><div class="invalid_feedback">
+                    {{ change_form.is_active.errors }}
+                </div></td>
+            </tr>
+
+            </table>
+
+    <hr>
+    <input id="form-button" class="btn btn-success btn-block" type="submit" value="Create Profile">
+    <br>
+        {{form.non_field_errors}}
+    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+</form>
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+{% endblock  %}
+
+
+{% block content %}
+<div class="list-group">
+
+  <div class="row list-group-item">
+    <div class="col-lg-2" >Фамилия</div>
+    <div class="col-lg-2" >Предмет</div>
+    <div class="col-lg-2" >Филиал</div>
+    <div class="col-lg-3" >Дата</div>
+    <div class="col-lg-2" >Количество часов</div>
+
+  </div>
+
+  {% for t in journal %}
+  <div class="row list-group-item">
+    <div class="col-lg-2" >{{ t.id_teacher }}</div>
+    <div class="col-lg-2" >{{ t.id_course }}</div>
+    <div class="col-lg-2" >{{ t.id_branch }}</div>
+    <div class="col-lg-3" >{{ t.date_of_visit|date:"d-m-Y" }}</div>
+    <div class="col-lg-2"  >{{ t.number_hours }}</div>
+
+  </div>
+
+  {% endfor %}
+</div>
+{% endblock  %}
+

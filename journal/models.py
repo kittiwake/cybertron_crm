@@ -37,6 +37,24 @@ class Branch(models.Model):
         verbose_name_plural = "Филиалы"
         ordering = ["title"]        
 
+class Teacher(models.Model):
+    first_name = models.CharField(max_length=150, verbose_name='Имя')
+    last_name = models.CharField(max_length=150, verbose_name='Фамилия')
+    contact = models.CharField(max_length=150, verbose_name='Номер телефона')
+    user_id = models.ForeignKey(User, related_name='user', on_delete=models.SET_NULL, null=True, blank=True, )
+    tg_name = models.CharField(max_length=150, verbose_name='Имя Telegram', default='unknown', unique=True)
+    tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return self.last_name
+    
+    class Meta:
+        verbose_name = "Преподаватель"
+        verbose_name_plural = "Преподаватели"
+        ordering = ['last_name']        
+
+
 
 class Timetable(models.Model):
     CHOICES = (
@@ -48,7 +66,7 @@ class Timetable(models.Model):
         ('СБ', 'Суббота'),
         ('ВС', 'Воскресенье'),
     )
-    id_teacher = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name = 'Преподаватель')
+    id_teacher = models.ForeignKey(Teacher, on_delete=models.PROTECT, verbose_name = 'Преподаватель')
     id_course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name = 'Предмет')
     id_branch = models.ForeignKey(Branch, null=True, on_delete=models.SET_NULL, verbose_name = 'Филиал')
     day_of_week = models.CharField(max_length=30, choices = CHOICES, verbose_name = 'День недели')
@@ -86,23 +104,10 @@ class Client(models.Model):
     def __str__(self):
         return self.surname + ' ' + self.name
   
-class Teacher(models.Model):
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    contact = models.CharField(max_length=150)
-    user_id = models.ForeignKey(User, related_name='user', on_delete=models.SET_NULL, null=True, blank=True, )
-    tg_name = models.CharField(max_length=150)
-    tg_id = models.CharField(max_length=30, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self) -> str:
-        return self.last_name
-
-
 
 # фикс зарплат
 class Salary(models.Model):
-    id_teacher = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name = 'Преподаватель')
+    id_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name = 'Преподаватель')
     last_sum = models.IntegerField(default=0, verbose_name = 'Сумма за час')
     date_of_change = models.DateTimeField(auto_now_add=True)
 

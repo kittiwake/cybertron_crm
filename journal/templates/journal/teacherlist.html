@@ -10,53 +10,40 @@
   {% csrf_token %}
 
 {{ form.media }}
-<!-- 'surname', 'name', 'birthday', 'guardian', 'mobile_phone', 'address' -->
+<!-- 'first_name', 'last_name','contact','tg_name' -->
+<input type="hidden" name="action" value="add">
+
     <div class="col-12 bg-light">
       <div class="row">
-        <div class="col-5">
-          <label for="{{ form.surname.id_for_label }}" class="form-label">{{ form.surname.label }}</label>
-          {{ form.surname }}
+        <div class="col-4">
+          <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+          <div>{{ form.last_name }}</div>
           <div class="invalid-feedback">
-            {{ form.surname.errors }}
+            {{ form.last_name.errors }}
           </div>  
         </div>
-        <div class="col-5">
-          <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
-          {{ form.name }}
+        <div class="col-4">
+          <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+          <div>{{ form.first_name }}</div>
           <div class="invalid-feedback">
-            {{ form.name.errors }}
-          </div>  
-        </div>
-        <div class="col-2">
-          <label for="{{ form.birthday.id_for_label }}" class="form-label">{{ form.birthday.label }}</label>
-          {{ form.birthday }}
-          <div class="invalid-feedback">
-            {{ form.birthday.errors }}
+            {{ form.first_name.errors }}
           </div>  
         </div>
       </div>
       <div class="row">
-        <div class="col-5">
-          <label for="{{ form.guardian.id_for_label }}" class="form-label">{{ form.guardian.label }}</label>
-        {{ form.guardian }}
+        <div class="col-4">
+          <label for="{{ form.contact.id_for_label }}" class="form-label">{{ form.contact.label }}</label>
+          <div>{{ form.contact }}</div>
           <div class="invalid-feedback">
-            {{ form.guardian.errors }}
+            {{ form.contact.errors }}
           </div>  
         </div>
-        <div class="col-5">
-          <label for="{{ form.mobile_phone.id_for_label }}" class="form-label">{{ form.mobile_phone.label }}</label>
-          {{ form.mobile_phone }}
+
+        <div class="col-4">
+          <label for="{{ form.tg_name.id_for_label }}" class="form-label">{{ form.tg_name.label }}</label>
+          <div>{{ form.tg_name }}</div>
           <div class="invalid-feedback">
-            {{ form.mobile_phone.errors }}
-          </div>  
-        </div>
-      </div>  
-      <div class="row">
-        <div class="col-6">
-          <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
-          {{ form.address }}
-          <div class="invalid-feedback">
-            {{ form.address.errors }}
+            {{ form.tg_name.errors }}
           </div>  
         </div>
         <div class="col-2">
@@ -73,9 +60,9 @@
         <thead>
         <tr>
             <th scope="col">#</th>
-            <th scope="col">Имя</th>
-            <th scope="col">Почта</th>
+            <th scope="col">Фамилия Имя</th>
             <th scope="col">Контакт</th>
+            <th scope="col">Telegram</th>
             <th scope="col"></th>
         </tr>
         </thead>
@@ -84,14 +71,14 @@
             <tr>
                 <th scope="row">{{ forloop.counter }}</th>
                 <td>{{ client.last_name}} {{ client.first_name}}</td>
-                <td>{{ client.email }}</td>
-                <td> </td>
+                <td>{{ client.contact }}</td>
+                <td>{% if client.tg_name != 'unknown' %} https://t.me/{{ client.tg_name }} {% endif %}</td>
 
                 <td>
                     <form action="" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="del">
-                        <input type="hidden" name="pk" value="{{ user }}">
+                        <input type="hidden" name="pk" value="{{ client.id }}">
                         <button type="submit" class="btn btn-danger btn-sm">Уволить</button>
             
                       </form>
@@ -106,29 +93,30 @@
         <thead>
         <tr>
             <th scope="col">#</th>
-            <th scope="col">Имя</th>
-            <th scope="col">Почта</th>
+            <th scope="col">Фамилия Имя</th>
             <th scope="col">Контакт</th>
+            <th scope="col">Telegram</th>
             <th scope="col"></th>
         </tr>
         </thead>
         <tbody class="table-group-divider">
         {% for client in new %}
-        <tr>
+          <tr>
             <th scope="row">{{ forloop.counter }}</th>
             <td>{{ client.last_name}} {{ client.first_name}}</td>
-            <td>{{ client.email }}</td>
-            <td> </td>
+            <td>{{ client.contact }}</td>
+            <td>{% if client.tg_name != 'unknown' %} https://t.me/{{ client.tg_name }} {% endif %}</td>
+
             <td>
                 <form action="" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="del">
-                    <input type="hidden" name="pk" value="{{ user }}">
+                    <input type="hidden" name="pk" value="{{ client.id }}">
                     <button type="submit" class="btn btn-danger btn-sm">Уволить</button>
         
-                </form>
+                  </form>
             </td>
-        </tr>
+          </tr>
         </tbody>
         {% endfor %}
     </table>
@@ -138,29 +126,31 @@
         <thead>
         <tr>
             <th scope="col">#</th>
-            <th scope="col">Имя</th>
-            <th scope="col">Почта</th>
+            <th scope="col">Фамилия Имя</th>
             <th scope="col">Контакт</th>
+            <th scope="col">Telegram</th>
             <th scope="col"></th>
         </tr>
         </thead>
         <tbody class="table-group-divider">
         {% for client in notactive %}
-            <tr>
-                <th scope="row">{{ forloop.counter }}</th>
-                <td>{{ client.last_name}} {{ client.first_name}}</td>
-                <td>{{ client.email }}</td>
-                <td></td>
-                <td>
-                    <form action="" method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="rem">
-                        <input type="hidden" name="pk" value="{{ user }}">
-                        <button type="submit" class="btn btn-danger btn-sm">Восстановить</button>
-            
-                    </form>
-                </td>
-            </tr>
+
+          <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ client.last_name}} {{ client.first_name}}</td>
+            <td>{{ client.contact }}</td>
+            <td>{% if client.tg_name != 'unknown' %} https://t.me/{{ client.tg_name }} {% endif %}</td>
+
+            <td>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="rem">
+                    <input type="hidden" name="pk" value="{{ client.id }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Восстановить</button>
+        
+                  </form>
+            </td>
+        </tr>
         </tbody>
         {% endfor %}
     </table>

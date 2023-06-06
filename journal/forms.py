@@ -75,6 +75,10 @@ class AddTimetableForm(forms.ModelForm):
                 'duration': forms.NumberInput(attrs={'size': '2'}),
         }
 
+class AddTeacherForm(forms.ModelForm):
+    class Meta:
+        model = Teacher
+        fields = ['first_name', 'last_name','contact','tg_name']
 
 class AddWorkingTimeForm(forms.ModelForm):
 

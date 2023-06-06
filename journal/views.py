@@ -203,20 +203,20 @@ class TimetableView(View):
     def post(self, request):
         print(request.POST)
         if request.POST['action'] == 'add':
-            print('added')
-            res = Timetable.objects.get(
-                id_teacher=request.POST['id_teacher'], 
-                id_course=request.POST['id_course'], 
-                id_branch=request.POST['id_branch'], 
-                day_of_week=request.POST['day_of_week'], 
-                timetb=request.POST['timetb']
-                )
-            if res:
-                res.active = True
-                res.save()
+            # print('added')
+            # res = Timetable.objects.get(
+            #     id_teacher=request.POST['id_teacher'], 
+            #     id_course=request.POST['id_course'], 
+            #     id_branch=request.POST['id_branch'], 
+            #     day_of_week=request.POST['day_of_week'], 
+            #     timetb=request.POST['timetb']
+            #     )
+            # if res:
+            #     res.active = True
+            #     res.save()
 
-            # form = AddTimetableForm(request.POST)
-            # form.save()
+            form = AddTimetableForm(request.POST)
+            form.save()
 
 
         if request.POST['action'] == 'del':
@@ -231,15 +231,37 @@ class TimetableView(View):
 
 class TeacherView(View):
     def get(self,request):
-        active = User.objects.filter(is_active=True).exclude(last_login=None)
-        notactive = User.objects.filter(is_active=False)
-        new = User.objects.filter(is_active=True, last_login=None)
+        active = Teacher.objects.filter(is_active=True).exclude(user_id=None)
+        notactive = Teacher.objects.filter(is_active=False)
+        new = Teacher.objects.filter(is_active=True, user_id=None)
+
+        form = AddTeacherForm()
 
         return render(request,'journal/teacherlist.html', {'active': active, 
                                                            'notactive':notactive,
-                                                           'new': new
+                                                           'new': new,
+                                                           'form': form,
                                                            })
+    
 
+    def post(self, request):
+        print(request)
+        if request.POST['action'] == 'add':
+            form = AddTeacherForm(request.POST)
+            form.save()
+
+        if request.POST['action'] == 'del':
+            pk = request.POST['pk']
+            bob = Teacher.objects.get(id=pk)
+            bob.is_active = False
+            bob.save()
+        # post на удаление записи в расписании. Удалить - перевести active в False
+        if request.POST['action'] == 'rem':
+            pk = request.POST['pk']
+            bob = Teacher.objects.get(id=pk)
+            bob.is_active = True
+            bob.save()
+        return redirect('teacherlist')
 
 
 class WorkingTimeView(View):

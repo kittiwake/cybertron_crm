@@ -10,8 +10,8 @@ class TimetableAdmin(admin.ModelAdmin):
     list_filter = ('id_teacher', 'id_course', 'id_branch')
 
 
-# class TeacherAdmin(admin.ModelAdmin):
-#     list_display = ('surname', 'name','patronymic','active')
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name','contact','tg_name','is_active')
 
 
 class SalaryAdmin(admin.ModelAdmin):
@@ -37,7 +37,7 @@ class VisitFixAdmin(admin.ModelAdmin):
     list_display = ('id_client', 'id_timetable','date','visit')
 
 
-# admin.site.register(Teacher,TeacherAdmin)
+admin.site.register(Teacher,TeacherAdmin)
 admin.site.register(Course)
 admin.site.register(Branch)
 admin.site.register(Client,ClientAdmin)

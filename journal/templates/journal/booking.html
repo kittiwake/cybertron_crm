@@ -48,10 +48,15 @@
         {% if course and br%}
         {% for tb in tt %}
         <td scope="col">
-          {% if tb.timetb == t.id_timetable.timetb %}
-          <p>
-            <button type="submit" class="btn btn-success btn-sm">Отменить</button>
-          </p>
+          {% if tb.timetb == t.id_timetable.timetb and tb.day_of_week == t.id_timetable.day_of_week %}
+
+          <form action="" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="del">
+              <input type="hidden" name="id_booking" value="{{ t.id }}">
+              <button type="submit" class="btn btn-success btn-sm">Отменить</button>
+          </form>
+
           {% endif %}
         </td>
         {% endfor %}
@@ -85,9 +90,12 @@
         <form action="" method="post">
           <td scope="col">
             {% csrf_token %}
+            <input type="hidden" name="action" value="add">
             <input type="hidden" name="id_client" value="{{ t.id_client__id }}">
             <input type="hidden" name="id_timetable" value="{{ tb.id }}">
-            <input type="hidden" name="date" value="{{ tb.date|date:'Y-m-d' }}">
+            <input type="hidden" name="date" size="5" value="{{ tb.date|date:'Y-m-d' }}">
+            <div>{{ tb.date|date:'d.m' }}</div>
+            <div>{{ tb.timetb }}</div>
             <button type="submit" class="btn btn-danger btn-sm">Бронировать</button>
           </td>
         </form>
@@ -132,9 +140,12 @@
               <form action="" method="post">
                 <td scope="col">
                   {% csrf_token %}
-                  <input type="text" name="id_client" value="{{ t.id }}">
-                  <input type="text" name="id_timetable" value="{{ tb.id }}">
-                  <input type="text" name="date" value="{{ tb.date|date:'Y-m-d' }}">
+                  <input type="hidden" name="action" value="add">
+                  <input type="hidden" name="id_client" value="{{ t.id }}">
+                  <input type="hidden" name="id_timetable" value="{{ tb.id }}">
+                  <input type="hidden" name="date" size="5" value="{{ tb.date|date:'Y-m-d' }}">
+                  <div>{{ tb.date|date:'d.m' }}</div>
+                  <div>{{ tb.timetb }}</div>                        
                   <button type="submit" class="btn btn-danger btn-sm">Бронировать</button>
                 </td>
               </form>

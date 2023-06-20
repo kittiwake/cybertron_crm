@@ -36,7 +36,6 @@
         <td>{{ item.id_branch }}</td>
         <td>{{ item.id_teacher.last_name}} {{item.id_teacher.first_name }}</td>
         
-        <!-- {% if user.is_authenticated and 'manager' in user.groups.all %} -->
         <td>
           <form action="" method="post">
             {% csrf_token %}
@@ -46,7 +45,6 @@
 
           </form>
         </td>
-        <!-- {% endif %} -->
       </tr> 
       {% endfor %}
 

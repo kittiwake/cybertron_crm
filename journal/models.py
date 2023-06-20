@@ -42,7 +42,7 @@ class Teacher(models.Model):
     last_name = models.CharField(max_length=150, verbose_name='Фамилия')
     contact = models.CharField(max_length=150, verbose_name='Номер телефона')
     user_id = models.ForeignKey(User, related_name='user', on_delete=models.SET_NULL, null=True, blank=True, )
-    tg_name = models.CharField(max_length=150, verbose_name='Имя Telegram', default='unknown', unique=True)
+    tg_name = models.CharField(max_length=150, verbose_name='Имя Telegram', blank=True, null=True, unique=True)
     tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=True)
 
@@ -53,7 +53,6 @@ class Teacher(models.Model):
         verbose_name = "Преподаватель"
         verbose_name_plural = "Преподаватели"
         ordering = ['last_name']        
-
 
 
 class Timetable(models.Model):
@@ -72,6 +71,7 @@ class Timetable(models.Model):
     day_of_week = models.CharField(max_length=30, choices = CHOICES, verbose_name = 'День недели')
     timetb = models.TimeField(verbose_name = 'Время')
     duration = models.DecimalField(default=2.0,max_digits=2, decimal_places=1, verbose_name = 'Длительность')
+    hours_payed = models.DecimalField(default=2.0,max_digits=2, decimal_places=1, verbose_name = 'Часов на оплату')
     active = models.BooleanField(verbose_name = 'Включен',default=True)
 
     def __str__(self):
@@ -92,7 +92,7 @@ class Client(models.Model):
     address = models.CharField(verbose_name='Место проживания', max_length=200, default='МО')
     phone_regex = RegexValidator(regex=r"^\+(?:[0-9]●?){6,14}[0-9]$", message=("Enter a valid international mobile phone number starting with +(country code)"))
     mobile_phone = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True, verbose_name='Контакт')
-    
+    tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
     active = models.BooleanField(default=True, verbose_name='Активный')
 
     # Metadata
@@ -118,13 +118,13 @@ class Salary(models.Model):
 
 
 class TeacherJournal(models.Model):
-    id_teacher = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name = 'Преподаватель')
+    id_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name = 'Преподаватель')
     id_course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name = 'Предмет')
     id_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, verbose_name = 'Филиал')
     date_of_visit = models.DateField(verbose_name = 'Дата')
     time_of_visit = models.TimeField(verbose_name = 'Время',default='15:00:00')
     number_hours = models.DecimalField(default=2, max_digits=2, decimal_places=1, verbose_name = 'Количество часов')
-    date_of_paid = models.DateField(verbose_name = 'Дата выплаты', auto_now=True)
+    date_of_paid = models.DateField(verbose_name = 'Дата выплаты', null=True, blank=True)
     ispaid = models.BooleanField(default=False) #оплачен
 
     class Meta:
@@ -144,6 +144,8 @@ class Paying(models.Model):
     date = models.DateTimeField(auto_now_add=True, verbose_name = 'Дата оплаты')
     summ = models.IntegerField(verbose_name = 'Сумма')
     subscription = models.IntegerField(default=1, verbose_name = 'Количество занятий') #колво оплаченых занятий
+    used_lesson = models.IntegerField(default=0, verbose_name = 'Использовано')
+
 
     # Metadata
     class Meta:
@@ -158,7 +160,7 @@ class VisitFix(models.Model):
     date = models.DateField(verbose_name = 'Дата')
     reserv = models.BooleanField(verbose_name = 'Запланирован')
     visit = models.BooleanField(verbose_name = 'Посетил')
-    payed = models.ForeignKey(Paying, null=True, on_delete=models.SET(False), verbose_name = 'Дата оплаты')
+    # payed = models.ForeignKey(Paying, null=True, on_delete=models.SET(False), verbose_name = 'Дата оплаты')
 
     # Metadata
     class Meta:

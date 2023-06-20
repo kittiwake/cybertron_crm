@@ -10,9 +10,9 @@ from .models import *
 from .forms import *
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.db.models.aggregates import Max
+from django.db.models.aggregates import Max, Sum
 from django.http import HttpResponseRedirect
-
+from django.db.models import F
 
 def registerPage(request):    
     if request.method == 'POST':
@@ -201,7 +201,6 @@ class TimetableView(View):
         return render(request, 'journal/timetable.html', {'title':'Расписание', 'timetable':tt, 'branchs':branchs, 'd':d, 'form':form})
 
     def post(self, request):
-        print(request.POST)
         if request.POST['action'] == 'add':
             # print('added')
             # res = Timetable.objects.get(
@@ -220,7 +219,6 @@ class TimetableView(View):
 
 
         if request.POST['action'] == 'del':
-            print('delete')
             pk = request.POST['pk']
             bob = Timetable.objects.get(id=pk)
             bob.active = False
@@ -279,7 +277,7 @@ class WorkingTimeView(View):
         
         return render(request,'journal/workingtime.html',{'journal': allwt, 'form':form})
 
-class AddWorkingTimeView(View):  # not works - error 302
+class AddWorkingTimeView(View):
 
     def post(self,request):
         # print(request.POST)
@@ -305,7 +303,7 @@ class TeacherSizePaidViev(View):
 
         tj = TeacherJournal.objects.filter(ispaid=False)
 
-        return render(request,'journal/paying.html',{'journal': tj})
+        return render(request,'journal/salary.html',{'journal': tj})
 
 class Salary(View):
     def get(self, request):
@@ -315,22 +313,14 @@ class Salary(View):
         # вывести только просмотр        
         return 1
 
-class TeachorPaidViev(View):
+class TeacherPaidViev(View):
     def get(self,request):
         pass
 
-class BookingTableView(View):
-
-    def get(self):
-
-        return render(request,'journal/booking_table.html')
-
-
 class BookingView(View):
     def get(self,request,br_id,course):
-    # определить день недели
-        dw = datetime.today().weekday()
 
+        print(request.META.get('HTTP_REFERER'))
     # из графика достать следующие варианты на всю неделю
         tt = Timetable.objects.filter(active=True)
         if br_id:
@@ -359,7 +349,6 @@ class BookingView(View):
             ttd['active']=t.active
             ttd['date']=dweek[t.day_of_week]
             ttt.append(ttd)
-        print(ttt)
         # достать все записи из посещений по id_tt
         visits = VisitFix.objects.filter(id_timetable__in=tt)
         booking = visits.filter(date__gte=datetime.today()).filter(reserv=True)
@@ -372,7 +361,6 @@ class BookingView(View):
             'id_timetable_id__timetb'
             ).annotate(total=Max('date'))
         newpeople = Client.objects.filter(active=True).order_by('surname').exclude(pk__in=VisitFix.objects.all().values('id_client'))
-
         data=dict()
         clients = Client.objects.filter()
         branchs = Branch.objects.all()
@@ -395,20 +383,50 @@ class BookingView(View):
         
 
     def post(self,request,br_id,course):
-        print(request.POST)
-        id_client = request.POST['id_client']
-        id_timetable = request.POST['id_timetable']
-        date = request.POST['date']
-        # try:
-        cl = Client.objects.get(pk=id_client)
-        tb = Timetable.objects.get(pk=id_timetable)
-        VisitFix.objects.create(id_client=cl, id_timetable=tb, date=date, reserv=True, visit=False)
-            # return redirect('visitors')
-        # except:
-            # pass
+        if request.POST['action'] == 'add':
+            id_client = request.POST['id_client']
+            id_timetable = request.POST['id_timetable']
+            date = request.POST['date']
+            # try:
+            cl = Client.objects.get(pk=id_client)
+            tb = Timetable.objects.get(pk=id_timetable)
+            check = VisitFix.objects.filter(id_client=cl, id_timetable=tb, date=date)
+            if not check:
+                VisitFix.objects.create(id_client=cl, id_timetable=tb, date=date, reserv=True, visit=False)
+        if request.POST['action'] == 'del':
+            id_booking = request.POST['id_booking']
+            VisitFix.objects.get(pk=id_booking).delete()
 
-        return redirect(f'/booking/{br_id}/{course}')
-        
+        return redirect(request.META.get('HTTP_REFERER'), '/booking/0/0')
+
+
+class VisitPayView(View):
+    def get(self, request):
+        form = AddPayingForm()
+        # pj = Paying.objects.values('id_client__surname', 'id_client__name', 'id_course__title').annotate(Max('date'))
+        pj = Paying.objects.values('id_client__surname', 'id_client__name', 'id_course__title').annotate(last_pay=Max('date'), lost=Sum(F('subscription')) - Sum(F('used_lesson')))
+        for o in pj:
+            print(o)
+        return render(request,'journal/paying.html', {'journal': pj,'form': form})
+    
+    def post(self, request):
+        form = AddPayingForm(request.POST)
+        # если пробное бесплатно
+
+        # проверить долг
+        client = request.POST['id_client']
+        course = request.POST['id_course']
+        # если есть долг записать даты в те занятия в долг
+        dolg = Paying.objects.filter(id_client=client, id_course=course).last()
+        if dolg:
+            if dolg.subscription < dolg.used_lesson:
+                form = form.save(commit=False)
+                form.used_lesson = (dolg.used_lesson - dolg.subscription)
+                dolg.used_lesson = F('subscription')
+                dolg.save()
+        form.save()
+        return redirect(f'/visitors/paying')
+
 
 class VisitorsView(View):
     # посещение может отмечать действующий препод
@@ -416,12 +434,13 @@ class VisitorsView(View):
         
         # получить расписание только для текущего препода
         user = request.user
+        teacher = Teacher.objects.get(user_id=user)
 
-        tt = Timetable.objects.filter(active=True).filter(id_teacher = user)
+        tt = Timetable.objects.filter(active=True).filter(id_teacher = teacher)
 
         # найти все брони на эти расписания
 
-        booking = VisitFix.objects.filter(reserv=True, visit=False, id_timetable__id_teacher=user)
+        booking = VisitFix.objects.filter(reserv=True, visit=False, id_timetable__id_teacher=teacher).order_by('date')
 
 
         data=dict()
@@ -433,22 +452,64 @@ class VisitorsView(View):
         data['br'] = br_id
         data['tt'] = tt
         data['booking'] = booking
-
-# 
+ 
         return render(request,'journal/visitors.html',data)
     
     def post(self, request,br_id,course):
-        print(request.POST)
         if request.POST['action'] == 'add':
             pk = request.POST['pk']
             bob = VisitFix.objects.get(id=pk)
             bob.visit = True
+            # найти последнюю оплату и +1 к used_lesson
+            pay = Paying.objects.filter(id_client=bob.id_client, id_course=bob.id_timetable.id_course).last()
+            if pay:
+                pay.used_lesson=F('used_lesson')+1
+            else:
+                pay = Paying(
+                    id_client = bob.id_client,
+                    id_course = bob.id_timetable.id_course,
+                    id_branch = bob.id_timetable.id_branch,
+                    summ = 0,
+                    subscription = 0,
+                    used_lesson = 1
+                )
+            pay.save()
             bob.save()
+            # проверить наличие записи в рабочих часах
+            # дата, препод, время, курс
+            teacher_fix = TeacherJournal.objects.filter(id_teacher=bob.id_timetable.id_teacher,
+                                                        date_of_visit=bob.date,
+                                                        time_of_visit=bob.id_timetable.timetb,
+                                                        id_course=bob.id_timetable.id_course)
+            if not teacher_fix:
+                # проверить более 1 присутствующего
+                les = VisitFix.objects.filter(id_timetable=bob.id_timetable, date=bob.date)
+                if len(les) > 1:
+                    # добавить запись в таблицу учителя
+                    TeacherJournal.objects.create(
+                        id_teacher = bob.id_timetable.id_teacher,
+                        id_course = bob.id_timetable.id_course,
+                        id_branch = bob.id_timetable.id_branch,
+                        date_of_visit = bob.date,
+                        time_of_visit = bob.id_timetable.timetb,
+                        number_hours = bob.id_timetable.hours_payed
+                        )
+
+
         if request.POST['action'] == 'del':
             pk = request.POST['pk']
             bob = VisitFix.objects.get(id=pk)
-            bob.reserv = False
-            bob.save()
+            # bob.reserv = False
+            # bob.save()
+
+            # запустить бота, предупредить завуча
+            # проверить оплаты:
+            pay = Paying.objects.filter(id_client=bob.id_client, id_course=bob.id_timetable.id_course).last()
+            # если ничего не оплачено, то игнор
+            # если оплачен разовый сеанс,то игнор
+            # если абонемент, то предупреждать
+            if pay.subscription > 1 and pay.subscription > pay.used_lesson:
+                pass
 
         return redirect(f'/visitors/{br_id}/{course}')
 

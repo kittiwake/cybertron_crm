@@ -5,28 +5,49 @@
 
 
 {% block content %}
-<div class="list-group">
 
-  <div class="row list-group-item">
-    <div class="col-lg-2" >Фамилия</div>
-    <div class="col-lg-2" >Предмет</div>
-    <div class="col-lg-2" >Филиал</div>
-    <div class="col-lg-3" >Дата</div>
-    <div class="col-lg-2" >Количество часов</div>
+<button>Внести оплату</button>
+<form method="post">
+  {% csrf_token %}
 
-  </div>
+  <div class="input-group mb-3">
+    {% for field in form %}   
+        {{ field }}
+    
+    {% endfor %}
 
+
+
+  <input type="submit" class="btn btn-primary" value="Добавить">
+</div>
+</form>
+
+<table class="table table-primary">
+  <thead class="table-light">
+    <tr>
+    
+      <th>Фамилия</th>
+      <th>Предмет</th>
+      <th>Дата</th>
+      <th>Количество часов</th>
+    
+    </tr>
+  </thead>
+  <tbody class="table-group-divider">
   {% for t in journal %}
-  <div class="row list-group-item">
-    <div class="col-lg-2" >{{ t.id_teacher }}</div>
-    <div class="col-lg-2" >{{ t.id_course }}</div>
-    <div class="col-lg-2" >{{ t.id_branch }}</div>
-    <div class="col-lg-3" >{{ t.date_of_visit|date:"d-m-Y" }}</div>
-    <div class="col-lg-2"  >{{ t.number_hours }}</div>
-
-  </div>
+    <tr>
+      <td>{{ t.id_client__surname }} {{ t.id_client__name }}</td>
+      <td>{{ t.id_course__title }}</td>
+      <td>{{ t.last_pay|date:"d-m-Y" }}</td>
+      <td>{{ t.lost }}</td>
+    </tr>    
 
   {% endfor %}
+
+</table>
+<div class="list-group">
+
 </div>
+
 {% endblock  %}
 

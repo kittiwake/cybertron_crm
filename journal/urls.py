@@ -20,6 +20,7 @@ urlpatterns = [
     path('<int:pk>/delete', DellWorkingTimeView.as_view(), name='journal-delete'),
     path('visitors/<int:br_id>/<int:course>', VisitorsView.as_view(),name='visitors'),
     path('booking/<int:br_id>/<int:course>', BookingView.as_view(),name='booking'),
-    path('workingtime/paying', TeacherSizePaidViev.as_view(),name='paying'),
+    path('workingtime/paying', TeacherSizePaidViev.as_view(),name='salary'),
+    path('visitors/paying', VisitPayView.as_view(),name='paying'),
     # path('salary', , name='salary')
 ]

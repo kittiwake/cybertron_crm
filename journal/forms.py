@@ -65,7 +65,7 @@ class AddTimetableForm(forms.ModelForm):
     class Meta:
         model = Timetable
         # fields = '__all__'
-        fields = ['id_course', 'id_branch', 'day_of_week','timetb', 'duration', 'id_teacher']
+        fields = ['id_course', 'id_branch', 'day_of_week','timetb', 'duration', 'id_teacher', 'hours_payed']
         widgets = {
                 'id_teacher': forms.Select(),
                 'id_course': forms.Select(),
@@ -73,6 +73,7 @@ class AddTimetableForm(forms.ModelForm):
                 'day_of_week': forms.Select(),
                 'timetb': forms.Select(choices=WORKING_TIMES),
                 'duration': forms.NumberInput(attrs={'size': '2'}),
+                'hours_payed': forms.NumberInput(attrs={'size': '2'}),
         }
 
 class AddTeacherForm(forms.ModelForm):
@@ -146,4 +147,15 @@ class AddClientForm(forms.ModelForm):
             'address': forms.TextInput()
         }
 
-    
+class AddPayingForm(forms.ModelForm):
+    class Meta:
+        model = Paying
+        # fields = '__all__'
+        fields = ['id_client', 'id_course', 'id_branch', 'summ', 'subscription']
+        widgets = {
+            'id_client': forms.Select(),
+            'id_course': forms.Select(),
+            'id_branch': forms.Select(),
+            'summ': forms.TextInput(attrs={'size': '3', 'placeholder': 'сумма'}), 
+            'subscription': forms.NumberInput(attrs={'size': '2'}),
+        }

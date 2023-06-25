@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+{% endblock  %}
+
+
+{% block content %}
+
+<br>
+Установить для всех выделенных сумму 
+<input type="text" id="summa" name="summa" size="3"> руб/час
+c <input type="date" id="date_begin">
+<button type="button" class="btn btn-success btn-sm" id="entersum">Внести изменения</button>
+<table class="table">
+  <thead class="table-light">
+    <tr>
+      <th><input type="checkbox" id="all_teachers"></th>
+      <th>Фамилия</th>
+      <th>Сумма</th>
+      <th>Дата активации</th>
+    
+    </tr>
+  </thead>
+  <tbody class="table-group-divider">
+  {% for t in data %}
+    <tr>
+      <td><input type="checkbox" class="teacher" data-teach="{{ t.teacher_id }}"></td>
+      <td>{{ t.last_name }} {{ t.first_name }}</td>
+      <td>{{ t.last_sum|default_if_none:'0' }}</td>
+      <td>{{ t.date_of_activate|date:"d-m-Y" }}</td>
+    </tr>    
+
+  {% endfor %}
+
+</table>
+
+<script>
+    window.onload = function(){
+        document.getElementById('all_teachers').addEventListener('change', (event) => {
+            let chbs = document.getElementsByClassName('teacher');
+            for(let i=0; i<chbs.length; i++){
+                chbs[i].checked = event.target.checked
+            }
+        })
+                
+        let btn = document.getElementById("entersum");
+        btn.addEventListener('click', (event) => {
+            let sum = document.getElementById('summa').value;
+            let date_begin = document.getElementById('date_begin').value;
+            let chbs = document.getElementsByClassName('teacher');
+            let lst = [];
+            for(let i=0; i<chbs.length; i++){
+                if(chbs[i].checked){
+                    lst.push(chbs[i].dataset.teach);
+                }
+            }
+          
+            if(lst.length > 0){
+                // ajax 
+                fetch('{% url "price" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;chartset=utf-8',
+                        "X-Requested-With": "XMLHttpRequest",
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({"sum": sum, "bdate": date_begin, "lst": lst})
+                })
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('all_teachers').checked = false;
+                    for(let i=0; i<chbs.length; i++){
+                        if(chbs[i].checked){
+                            
+                            chbs[i].checked = false;
+                            chbs[i].parentElement.nextElementSibling.nextElementSibling.innerHTML=sum;
+                            chbs[i].parentElement.nextElementSibling.nextElementSibling.nextElementSibling.innerHTML=date_begin.replace(/(\d*)-(\d*)-(\d*)/, "$3-$2-$1");
+                        }
+                    }
+                });
+            }
+    });
+};
+
+
+</script>
+
+{% endblock  %}
+

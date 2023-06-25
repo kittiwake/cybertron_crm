@@ -3,30 +3,110 @@
 {% block sidebar %}
 {% endblock  %}
 
-
 {% block content %}
-<div class="list-group">
 
-  <div class="row list-group-item">
-    <div class="col-lg-2" >Фамилия</div>
-    <div class="col-lg-2" >Предмет</div>
-    <div class="col-lg-2" >Филиал</div>
-    <div class="col-lg-3" >Дата</div>
-    <div class="col-lg-2" >Количество часов</div>
+<style>
+  .unactive {
+    display: none;
+  }
+  .active {
+    display: block;
+  }
+</style>
 
-  </div>
-
-  {% for t in journal %}
-  <div class="row list-group-item">
-    <div class="col-lg-2" >{{ t.id_teacher }}</div>
-    <div class="col-lg-2" >{{ t.id_course }}</div>
-    <div class="col-lg-2" >{{ t.id_branch }}</div>
-    <div class="col-lg-3" >{{ t.date_of_visit|date:"d-m-Y" }}</div>
-    <div class="col-lg-2"  >{{ t.number_hours }}</div>
-
-  </div>
-
+<table class="table">
+  <thead class="table-light">
+    <tr>
+      <th>Фамилия</th>
+      <th>Сумма</th>
+      <th></th>
+    
+    </tr>
+  </thead>
+  <tbody class="table-group-divider">
+  {% for t in data %}
+    <tr>
+      <td>{{ t.last_name }} {{ t.first_name }}</td>
+      <td class="totalsum" data-teach="{{t.id}}"></td>
+      <td>
+        <button class="btn btn-info activate" data-activate="{{t.id}}">Подробнее</button>
+        <button class="btn btn-success payed" data-payed="{{t.id}}">Выплачено</button>
+      </td>
+    </tr>    
+    <tr class="unactive" id="techtable_{{t.id}}">
+      <td colspan="3">
+        <table class="table table-secondary">
+          {% for inf in t.tt %}
+          <tr>
+            <td>
+              <input type="hidden" class="forpay_{{t.id}}" value="{{inf.id}}">
+              {{inf.date_of_visit}} 
+            </td>
+            <td>{{inf.id_course}} </td>
+            <td>{{inf.date_of_visit}}</td>
+            <td>{{inf.last_sum}}</td>
+            <td>{{inf.number_hours}}</td>
+            <td class="sumtt_{{t.id}}">{{inf.total}}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </td>
+    </tr>
   {% endfor %}
-</div>
+
+</table>
+
+
+<script>
+    window.onload = function(){
+      [].forEach.call(document.getElementsByClassName('totalsum'), function(elem) {
+        let sum_tt = document.getElementsByClassName('sumtt_'+elem.dataset.teach);
+        let total = 0;
+        for(let i=0; i<sum_tt.length; i++){
+          total += Number(sum_tt[i].innerText.replace(',', '.'));
+
+        }
+        elem.innerText=total;
+      });
+
+      [].forEach.call(document.getElementsByClassName('activate'), function(elem) {
+        elem.addEventListener('click', (event) => {
+          let teachid = elem.dataset.activate;
+          // <tr class="unactive techtable_{{t.id}}">
+            [].forEach.call(document.getElementsByClassName('active'), function(el) {
+              el.className = 'unactive';
+            });
+          document.getElementById('techtable_'+teachid).className = 'active';
+
+        });
+      });
+
+      [].forEach.call(document.getElementsByClassName('payed'), function(elem) {
+        elem.addEventListener('click', (event) => {
+          let teachid = elem.dataset.payed;
+          let forpay = [];
+          // получить id невыплаченных со страницы
+          // напрямую низзя, на случай, если одновременно вносятся изменения преподом и директором
+          [].forEach.call(document.getElementsByClassName('forpay_'+teachid), function(item_pay) {
+            forpay.push(item_pay.value)
+          });
+          if(forpay.length>0){
+            fetch('{% url "salary" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;chartset=utf-8',
+                    "X-Requested-With": "XMLHttpRequest",
+                    'X-CSRFToken': getCookie('csrftoken') // описана в базовом шаблоне
+                },
+                body: JSON.stringify({"lst": forpay})
+            })
+            .then(response => response.json())
+            .then(result => {
+              location.reload();
+            });
+          }
+        });
+      });    }
+</script>
 {% endblock  %}
 

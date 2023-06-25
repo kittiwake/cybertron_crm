@@ -110,12 +110,30 @@ class Salary(models.Model):
     id_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name = 'Преподаватель')
     last_sum = models.IntegerField(default=0, verbose_name = 'Сумма за час')
     date_of_change = models.DateTimeField(auto_now_add=True)
+    date_of_activate = models.DateTimeField(verbose_name='Действительна с ')
 
     class Meta:
         verbose_name = "Сумма"
         verbose_name_plural = "Зарплата"
         ordering = ["-date_of_change",'id_teacher']        
 
+    def get_list_salary():
+        sal_raw = Salary.objects.raw('''
+            SELECT t1.id, 
+            t2.id as teacher_id,  
+            date_of_activate, 
+            max(date_of_activate) as last_pay, 
+            last_sum,
+            t2.first_name,
+            t2.last_name
+            FROM journal_teacher as t2
+            LEFT JOIN journal_salary as t1
+            on t1.id_teacher_id = t2.id
+            WHERE t2.is_active = 1
+            GROUP BY teacher_id 
+            ORDER BY last_sum
+        ''')
+        return sal_raw
 
 class TeacherJournal(models.Model):
     id_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name = 'Преподаватель')

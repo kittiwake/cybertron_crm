@@ -15,12 +15,12 @@ urlpatterns = [
     path('course/', CourseView.as_view(), name='course'),
     path('client/', ClientView.as_view(), name='client'),
     path('teachers/', TeacherView.as_view(), name='teacherlist'),
+    path('booking/<int:br_id>/<int:course>', BookingView.as_view(),name='booking'),
+    path('visitors/<int:br_id>/<int:course>', VisitorsView.as_view(),name='visitors'),
+    path('visitors/paying', VisitPayView.as_view(),name='paying'),
     path('workingtime/', WorkingTimeView.as_view(), name='workingtime'),
     path('addworkingtime/', AddWorkingTimeView.as_view(), name='additem'),
     path('<int:pk>/delete', DellWorkingTimeView.as_view(), name='journal-delete'),
-    path('visitors/<int:br_id>/<int:course>', VisitorsView.as_view(),name='visitors'),
-    path('booking/<int:br_id>/<int:course>', BookingView.as_view(),name='booking'),
-    path('workingtime/paying', TeacherSizePaidViev.as_view(),name='salary'),
-    path('visitors/paying', VisitPayView.as_view(),name='paying'),
-    # path('salary', , name='salary')
+    path('workingtime/price', TeacherSizePaidView.as_view(),name='price'),
+    path('workingtime/paying', SalaryView.as_view(),name='salary'),
 ]

@@ -1,3 +1,4 @@
+import json
 from urllib import request
 
 # from ast import Delete
@@ -11,8 +12,9 @@ from .forms import *
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models.aggregates import Max, Sum
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models import F
+from django.utils import timezone
 
 def registerPage(request):    
     if request.method == 'POST':
@@ -295,23 +297,55 @@ class DellWorkingTimeView(DeleteView):
     success_url='/workingtime/'
 
 
-class TeacherSizePaidViev(View):
+class TeacherSizePaidView(View):
     def get(self,request):
-        # список действующих работников
-        # последняя запись о их зп
         # вывести только просмотр
+        sal_raw = Salary.get_list_salary()
+        for el in sal_raw:
+            print(el)
+        return render(request,'journal/price.html', {'data': sal_raw})
+    
+    def post(self, request):
+        data = json.load(request)
+        res = []
+        for id in data['lst']:
+            tom = Salary.objects.create(
+                id_teacher = Teacher.objects.get(pk=int(id)),
+                last_sum = int(data['sum']),
+                date_of_activate = data['bdate']
+            )
+            res.append(tom.id)
+        return JsonResponse({'res': res})
+    
 
-        tj = TeacherJournal.objects.filter(ispaid=False)
-
-        return render(request,'journal/salary.html',{'journal': tj})
-
-class Salary(View):
+class SalaryView(View):
     def get(self, request):
+
+        data = {}
         # список действующих работников
+        teachers = Teacher.objects.filter(is_active=True)
+        for teacher in teachers:
+            data[teacher.id] ={'id': teacher.id, 'last_name': teacher.last_name, 'first_name': teacher.first_name, 'tt': []}
+        # список неопл занятий
+        wt = TeacherJournal.objects.filter(ispaid=False)
+        for item in wt:
+            r = Salary.objects.filter(date_of_activate__lte=item.date_of_visit, id_teacher=item.id_teacher).order_by('date_of_activate').last()
+            item.last_sum = r.last_sum
+            item.total = item.last_sum * item.number_hours
+            data[item.id_teacher.id]['tt'].append(item)
+        content = {
+            'data': data.values(), # список преподов, сумма к выплате, + подсписок с расшифровкой
+        }
+        return render(request,'journal/salary.html', content)
+    
+    def post(self, request):
+        data = json.load(request)
+        print(data)
+        res = list(map(int, data['lst']))
+        print(res)
+        TeacherJournal.objects.filter(pk__in=res).update(ispaid=True, date_of_paid=datetime.today())
+        return JsonResponse({'res': res})
         
-        # последняя запись о их зп
-        # вывести только просмотр        
-        return 1
 
 class TeacherPaidViev(View):
     def get(self,request):
@@ -320,7 +354,6 @@ class TeacherPaidViev(View):
 class BookingView(View):
     def get(self,request,br_id,course):
 
-        print(request.META.get('HTTP_REFERER'))
     # из графика достать следующие варианты на всю неделю
         tt = Timetable.objects.filter(active=True)
         if br_id:

@@ -16,26 +16,26 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models import F
 from django.utils import timezone
 
-def registerPage(request):    
-    if request.method == 'POST':
-        profile_form = createUserForm(request.POST)
+# def registerPage(request):    
+#     if request.method == 'POST':
+#         profile_form = createUserForm(request.POST)
 
-        if profile_form.is_valid():
-            user = profile_form.save()
+#         if profile_form.is_valid():
+#             user = profile_form.save()
 
-            #we don't save the profile_form here because we have to first get the value of profile_form, assign the user to the OneToOneField created in models before we now save the profile_form. 
+#             #we don't save the profile_form here because we have to first get the value of profile_form, assign the user to the OneToOneField created in models before we now save the profile_form. 
 
-            messages.success(request,  'Your account has been successfully created')
+#             messages.success(request,  'Your account has been successfully created')
 
-            return redirect('/')
-        # pass
-    else:
-        profile_form = createUserForm()
+#             return redirect('/')
+#         # pass
+#     else:
+#         profile_form = createUserForm()
 
 
-    # context = {'form': form, 'profile_form': profile_form}    
-    context = {'profile_form': profile_form}    
-    return render(request, 'journal/register.html', context)
+#     # context = {'form': form, 'profile_form': profile_form}    
+#     context = {'profile_form': profile_form}    
+#     return render(request, 'journal/register.html', context)
 
 # def registerNamePage(request):    
 #     if request.method == 'POST':
@@ -58,35 +58,41 @@ def registerPage(request):
 #     context = {'change_form':change_form}    
 #     return render(request, 'journal/change_name.html', context)
 
-class RegisterView(View):
+# class RegisterView(View):
 
-    template_name = 'registration/register.html'
+#     template_name = 'registration/register.html'
 
-    def get(self, request):
-        context = {
-            'form': UserCreationForm
-        }
-        return render(request, self.template_name, context)
+#     def get(self, request):
+#         context = {
+#             'form': UserCreationForm
+#         }
+#         return render(request, self.template_name, context)
     
-    def post(self, request):
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save() 
-            un = form.cleaned_data.get('username')
-            up = form.cleaned_data.get('password1')
-            user = authenticate(username=un, password=up)
-            login(request, user)
+#     def post(self, request):
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             form.save() 
+#             un = form.cleaned_data.get('username')
+#             up = form.cleaned_data.get('password1')
+#             user = authenticate(username=un, password=up)
+#             login(request, user)
 
-            return redirect('timetable')
-        context = {
-            'form': form
-        }
-        return render(request, self.template_name, context)
+#             return redirect('timetable')
+#         context = {
+#             'form': form
+#         }
+#         return render(request, self.template_name, context)
 
 class BranchView(ListView):
     model = Branch
     form_class = AddBranchForm
     success_url = ''
+
+    def get(self, request, *args, **kwargs):        
+        if not request.user.is_authenticated:
+            return redirect('login')
+        else:
+            return super(self.__class__, self).get(self, request, *args, **kwargs)
 
     def get_queryset(self):
         return Branch.objects.all()
@@ -110,6 +116,12 @@ class CourseView(ListView):
     form_class = AddCourseForm
     success_url = ''
 
+    def get(self, request, *args, **kwargs):        
+        if not request.user.is_authenticated:
+            return redirect('login')
+        else:
+            return super(self.__class__, self).get(self, request, *args, **kwargs)
+        
     def get_queryset(self):
         return Course.objects.all()
     
@@ -142,6 +154,12 @@ class ClientView(ListView):
     form_class = AddClientForm
     success_url = ''
 
+    def get(self, request, *args, **kwargs):        
+        if not request.user.is_authenticated:
+            return redirect('login')
+        else:
+            return super(self.__class__, self).get(self, request, *args, **kwargs)
+
     def get_queryset(self):
         return Client.objects.all()
 
@@ -165,14 +183,16 @@ class LoginView(View):
         if request.user.is_authenticated:
             return redirect('timetable')
         else:
-            profile_form = authUserForm()
-            context = {'profile_form': profile_form}  
-            return render(request, 'journal/login.html', context)
+            return redirect('accounts/login')
 
 
 class TimetableView(View):
 
     def get(self,request,br_id=0,t_id=0):
+
+        if not request.user.is_authenticated:
+            return redirect('login')
+        
         allweek = ['ПН','ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
         d = [{'dw':'ПН','tt':[]},
             {'dw':'ВТ','tt':[]},
@@ -231,6 +251,10 @@ class TimetableView(View):
 
 class TeacherView(View):
     def get(self,request):
+
+        if not request.user.is_authenticated:
+            return redirect('login')
+
         active = Teacher.objects.filter(is_active=True).exclude(user_id=None)
         notactive = Teacher.objects.filter(is_active=False)
         new = Teacher.objects.filter(is_active=True, user_id=None)
@@ -268,6 +292,9 @@ class WorkingTimeView(View):
 
     def get(self,request):
 
+        if not request.user.is_authenticated:
+            return redirect('login')
+
         # br = User.objects.get(pk=1)
         # print(br)
         # d = {'id_teacher':br, 'last_sum':650}
@@ -299,6 +326,10 @@ class DellWorkingTimeView(DeleteView):
 
 class TeacherSizePaidView(View):
     def get(self,request):
+
+        if not request.user.is_authenticated:
+            return redirect('login')
+
         # вывести только просмотр
         sal_raw = Salary.get_list_salary()
         for el in sal_raw:
@@ -320,6 +351,9 @@ class TeacherSizePaidView(View):
 
 class SalaryView(View):
     def get(self, request):
+
+        if not request.user.is_authenticated:
+            return redirect('login')
 
         data = {}
         # список действующих работников
@@ -353,6 +387,9 @@ class TeacherPaidViev(View):
 
 class BookingView(View):
     def get(self,request,br_id,course):
+
+        if not request.user.is_authenticated:
+            return redirect('login')
 
     # из графика достать следующие варианты на всю неделю
         tt = Timetable.objects.filter(active=True)
@@ -435,6 +472,10 @@ class BookingView(View):
 
 class VisitPayView(View):
     def get(self, request):
+
+        if not request.user.is_authenticated:
+            return redirect('login')
+
         form = AddPayingForm()
         # pj = Paying.objects.values('id_client__surname', 'id_client__name', 'id_course__title').annotate(Max('date'))
         pj = Paying.objects.values('id_client__surname', 'id_client__name', 'id_course__title').annotate(last_pay=Max('date'), lost=Sum(F('subscription')) - Sum(F('used_lesson')))
@@ -465,6 +506,9 @@ class VisitorsView(View):
     # посещение может отмечать действующий препод
     def get(self,request,br_id,course):
         
+        if not request.user.is_authenticated:
+            return redirect('login')
+
         # получить расписание только для текущего препода
         user = request.user
         teacher = Teacher.objects.get(user_id=user)

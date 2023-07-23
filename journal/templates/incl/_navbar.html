@@ -21,17 +21,14 @@
             
             <span class="navbar_text">
                 {% if user.is_authenticated %}
-                <!-- <span>{{ user.get_username }}</span> | <a href="{% url 'logout' %}?next={{request.path}}">Выход</a>
-                <p>{{ user.get_username }}</p> -->
                     <span class="navbar_text">
-                        <a href="#" class="link-warning">{{ user.first_name }}</a> | 
+                        <a href="#" class="link-warning">{% if user.first_name %} {{user.first_name}} {% else %} {{ user.username }} {% endif %}</a> | 
                         <a href="{% url 'logout' %}" class="link-warning">Выйти</a>
                     </span>
 
                 {% else %}
-                <!-- <a href="{% url 'register' %}">Регистрация</a> | <a href="{% url 'login' %}">Вход</a> -->
                 <span class="navbar_text">
-                    <a href="{% url 'login' %}" class="link-warning">Войти</a> | <a href="{% url 'register' %}" class="link-warning">Регистрация</a>
+                    <a href="{% url 'login' %}" class="link-warning">Войти</a>
                 </span>
                 {% endif %}
             </span>

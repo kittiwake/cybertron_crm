@@ -4,11 +4,11 @@ from .views import *
 
 urlpatterns = [
     # path('register/', registerPage, name='register'),
-    path('register/', RegisterView.as_view(), name='register'),
+    # path('register/', RegisterView.as_view(), name='register'),
     # path('change_name/', registerNamePage, name='changeName'),
     
-    # path('', LoginView.as_view(), name='login'),
-    path('accounts/', include('django.contrib.auth.urls')),
+    # path('accounts/ligin', LoginView.as_view(), name='login'),
+    path('accounts/', include('django.contrib.auth.urls'), name='accounts'),
     path('', TimetableView.as_view(), name='timetable'),
     path('filial/<int:br_id>/', TimetableView.as_view(), name='brtimetable'),
     path('filial/', BranchView.as_view(), name='branch'),

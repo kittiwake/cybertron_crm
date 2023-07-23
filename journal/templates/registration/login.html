@@ -14,23 +14,35 @@
     <p>Please login to see this page.</p>
   {% endif %}
 {% endif %}
-
+<br/>
+<div class="alert alert-primary" role="alert">
+  Для работы на сайте авторизуйтесь, пожалуйста
+</div>
+<div class="alert alert-warning" role="alert">
+  Если Вы не зарегистрированы, пройдите регистрацию через телеграм-бота
+  <a href="https://t.me/kitti_wake_bot">@kitti_wake_bot</a>
+</div>
 <form method="post" action="{% url 'login' %}">
 {% csrf_token %}
+
+<div class="row mb-3">
+  <label for="id_username" class="col-sm-3 col-form-label">Имя пользователя:</label>
+  <div class="col-sm-5">
+    <input type="text" class="form-control" id="id_username" name="username">
+  </div>
+</div>
+
+<div class="row mb-3">
+  <label for="id_password" class="col-sm-3 col-form-label">Пароль</label>
+  <div class="col-sm-5">
+    <input type="password" class="form-control" id="id_password" name="password">
+  </div>
+  <input type="submit" class="col-sm-2 btn btn-primary" value="Войти" />
+</div>
+
 <table>
 
-<tr>
-  <td>{{ form.username.label_tag }}</td>
-  <td>{{ form.username }}</td>
-</tr>
 
-<tr>
-  <td>{{ form.password.label_tag }}</td>
-  <td>{{ form.password }}</td>
-</tr>
-</table>
-
-<input type="submit" value="login" />
 <input type="hidden" name="next" value="{{ next }}" />
 </form>
 

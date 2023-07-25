@@ -37,6 +37,10 @@ class VisitFixAdmin(admin.ModelAdmin):
     list_display = ('id_client', 'id_timetable','date','visit')
 
 
+class ComputersAdmin(admin.ModelAdmin):
+    list_display = ('manufacture', 'model', 'hdd_sdd', 'ozu', 'cpu', 'id_branch', 'data_service')
+
+
 admin.site.register(Teacher,TeacherAdmin)
 admin.site.register(Course)
 admin.site.register(Branch)
@@ -46,3 +50,4 @@ admin.site.register(TeacherJournal,TeacherJournalAdmin)
 admin.site.register(Paying,PayingAdmin)
 admin.site.register(VisitFix,VisitFixAdmin)
 
+admin.site.register(Computers,ComputersAdmin)

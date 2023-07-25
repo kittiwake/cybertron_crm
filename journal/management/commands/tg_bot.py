@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from telebot import TeleBot
-from telebot.types import Message
+from telebot.types import Message, InlineKeyboardButton,InlineKeyboardMarkup
 from journal.models import Teacher
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,44 +11,64 @@ from django.core.exceptions import ObjectDoesNotExist
 
 bot = TeleBot(settings.TELEGRAM_BOT_API_KEY, threaded=False)
 
-def log_errors(f):
-    def inner(*args,**kwargs):
-        try:
-            return f(*args,**kwargs)
-        except Exception:
-            print(f'Произошла ошибка {Exception}')
-            raise Exception
-    return inner
-
 
 @bot.message_handler(commands=['start'])
-def echo(message: Message):
-    reg = False
+def start(message: Message):
+    # проверить id в базе переподов и родаков
+    # если уже есть 
+    markup = InlineKeyboardMarkup()
+    btn1 = InlineKeyboardButton('Я преподаватель',callback_data='teacher')
+    btn2 = InlineKeyboardButton('Я родитель',callback_data='student')
+    markup.row(btn1, btn2)
+    bot.send_message(chat_id=message.chat.id, 
+                     text='Здравствуйте!',
+                     reply_markup=markup)
+    
+@bot.callback_query_handler(func=lambda callback: True)
+def on_click(callback):
+    # print(callback)
+    if callback.data == 'teacher':
+        start_teacher(callback.message)
+
+def start_teacher(message: Message):
+    reg = True
     try:
-        teacher = Teacher.objects.get(tg_name=message.from_user.id)
-        bot.send_message(chat_id=message.chat.id, 
-                        text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}.')
+        teacher = Teacher.objects.get(tg_id=message.chat.id)
+        if teacher.user_id:
+            bot.send_message(chat_id=message.chat.id, 
+                            text=f'''Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте.
+                                Если хотите сменить логин/пароль, введите команду /reset''')
+            reg = False
+        else:
+            bot.send_message(chat_id=message.chat.id, 
+                            text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Пройдите регистрацию')
+
     except ObjectDoesNotExist:
         
-        reg = True
         # получить юзернейм, найти в базе
         try:
-            teacher = Teacher.objects.get(tg_name=message.from_user.username)
-            teacher.tg_id = message.from_user.id
+            teacher = Teacher.objects.get(tg_name=message.chat.username)
+            teacher.tg_id = message.chat.id
             teacher.save()
-            bot.send_message(chat_id=message.chat.id, 
-                            text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}.')
+            if teacher.user_id:
+                bot.send_message(chat_id=message.chat.id, 
+                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. \
+                                    Если хотите сменить логин/пароль, введите команду /reset')
+                reg = False
+            else:
+                bot.send_message(chat_id=message.chat.id, 
+                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Пройдите регистрацию')
             
         except ObjectDoesNotExist:
             
-            teachers = Teacher.objects.filter(tg_id__isnull=True).filter(last_name=message.from_user.last_name)
+            teachers = Teacher.objects.filter(tg_id__isnull=True).filter(last_name=message.chat.last_name)
             if len(teachers) == 1:
                 teacher = teachers[0]
                 del teachers
-                teacher.tg_id = message.from_user.id
+                teacher.tg_id = message.chat.id
                 teacher.save()
                 bot.send_message(chat_id=message.chat.id, 
-                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}.')
+                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Пройдите регистрацию')
             else:
                 reg = False
                 bot.send_message(chat_id=message.chat.id, 
@@ -57,7 +77,7 @@ def echo(message: Message):
     if reg:
         # запрос логина и пароля
         bot.send_message(chat_id=message.chat.id, 
-                        text=f'Для регистрации в портале введите логин.')
+                        text=f'Для регистрации на сайти введите логин.')
         bot.register_next_step_handler(message, enter_login, teacher=teacher)
 
 def check_name(message: Message):
@@ -69,10 +89,11 @@ def check_name(message: Message):
 Проверьте свой ввод и если нужно, повторите сначала. Если ошибок не было допущено, обратитесь к администратору')
     elif len(teacher) == 1:
         reg = True
-        teacher[0].tg_id = message.from_user.id
+        teacher[0].tg_id = message.chat.id
+        teacher[0].tg_name = message.chat.username
         teacher[0].save()
         bot.send_message(chat_id=message.chat.id, 
-                        text=f'Здравствуйте, {teacher[0].last_name} {teacher[0].first_name}.')
+                        text=f'Здравствуйте, {teacher[0].last_name} {teacher[0].first_name}. Пройдите регистрацию')
     else:
         bot.reply_to(message=message, 
                      text='''К сожалению, я не могу идентифицировать Вас по фамилии. Создайте имя пользователя в телеграм
@@ -100,6 +121,12 @@ def enter_password(message: Message, teacher: Teacher, login: str):
     except Exception as e:
         bot.send_message(chat_id=message.chat.id, 
                     text=f'Ошибка регистрации: {e}')
+
+@bot.message_handler(commands=['reset'])
+def reset_registration(message: Message):
+    teacher = Teacher.objects.get(tg_id=message.chat.id)
+    print(teacher.values())
+
 
 @bot.message_handler(commands=['info'])
 def echo(message: Message):

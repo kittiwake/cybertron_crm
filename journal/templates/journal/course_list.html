@@ -23,9 +23,13 @@
     </tbody>
     {% endfor %}
   </table>
+
+  {% if perms.journal.add_course %}
   <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
   </form>
+{% endif %}
+
 {% endblock content %}

@@ -2,6 +2,7 @@
 
 {% block content %}
 <br>
+{% if perms.journal.add_teacher %}
 {% if form %}
 <div class="bg-primary text-white">
   <h6>Добавить преподавателя</h6>
@@ -54,6 +55,7 @@
 
 </form>
 {% endif %}
+{% endif %}
 <br>
     <h4 class='bg-info'>Действующие</h3>
     <table class="table">
@@ -73,7 +75,8 @@
                 <td>{{ client.last_name}} {{ client.first_name}}</td>
                 <td>{{ client.contact }}</td>
                 <td>{% if client.tg_name != 'unknown' %} https://t.me/{{ client.tg_name }} {% endif %}</td>
-
+                
+                {% if perms.journal.delete_teacher %}
                 <td>
                     <form action="" method="post">
                         {% csrf_token %}
@@ -83,6 +86,7 @@
             
                       </form>
                 </td>
+                {% endif %}
             </tr>
         </tbody>
         {% endfor %}
@@ -107,6 +111,7 @@
             <td>{{ client.contact }}</td>
             <td>{% if client.tg_name != 'unknown' %} https://t.me/{{ client.tg_name }} {% endif %}</td>
 
+            {% if perms.journal.delete_teacher %}
             <td>
                 <form action="" method="post">
                     {% csrf_token %}
@@ -116,11 +121,13 @@
         
                   </form>
             </td>
+            {% endif %}
           </tr>
         </tbody>
         {% endfor %}
     </table>
 
+    {% if perms.journal.add_teacher %}
     <h4 class='bg-warning'>Отстранены / Уволены</h3>
     <table class="table">
         <thead>
@@ -154,5 +161,5 @@
         </tbody>
         {% endfor %}
     </table>
-
+    {% endif %}
 {% endblock content %}

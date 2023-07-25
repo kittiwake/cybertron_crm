@@ -3,29 +3,44 @@
 
 {% block content %}
 
+{% if perms.journal.add_client %}
+
+{% endif %}
+
 <table class="table">
     <thead>
       <tr>
         <th scope="col">#</th>
-        <th scope="col">Имя</th>
-        <th scope="col">Возраст</th>
-        <th scope="col">Адрес</th>
-        <th scope="col">Родитель</th>
-        <th scope="col">Контакт</th>
-        <th scope="col">Действия</th>
+        <th scope="col">Артикул</th>
+        <th scope="col">Модель</th>
+        <th scope="col">Процессор</th>
+        <th scope="col">Оперативная память</th>
+        <th scope="col">Диски</th>
+        <th scope="col">Операционка</th>
+        <th scope="col">Состояние</th>
+        <th scope="col">Расположение</th>
+        <th scope="col">Обслужен</th>
       </tr>
     </thead>
     <tbody class="table-group-divider">
-    {% for client in client_list %}
+    {% for comp in computers_list %}
       <tr>
         <th scope="row">{{ forloop.counter }}</th>
-        <td>{{ client.surname}} {{ client.name}}</td>
-        <td>{{ client.birthday}}</td>
-        <td>{{ client.address}}</td>
-        <td>{{ client.guardian}}</td>
-        <td>{{ client.mobile_phone}}</td>
+        <td>{{ comp.articul}}</td>
+        <td>{{ comp.manufacture}} {{ comp.model}} {{ comp.metka}}</td>
+        <td>{{ comp.cpu}} {{ comp.cpu_mark}} {{ comp.cpu_hash}} {{ comp.cpu_takt}} {{ comp.cpu_shin}}</td>
+        <td>{{ comp.ozu}}</td>
+        <td>{{ comp.mobile_phone}}</td>
 
-        <td>кнопки</td>
+        <td>{{ comp.os}}</td>
+        <td>{{ comp.note}}</td>
+        <td>{{ comp.id_branch}}</td>
+        <td>{{ comp.data_service}}</td>
+    
+
+
+
+
       </tr>
     </tbody>
     {% endfor %}

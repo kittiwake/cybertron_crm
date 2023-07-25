@@ -1,6 +1,6 @@
 <!doctype html>
 {% load static %}
-<html lang="en">
+<html lang="en" class="h-100">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,8 +21,8 @@
     </style>
 
   </head>
-  <body>
-
+  <body class="h-100 d-flex flex-column ">
+<main class="flex-shrink-0">
     {% include 'incl/_navbar.html' %}
     <div class="container">
         <div class="row">
@@ -34,6 +34,7 @@
             </div>
         </div>
     </div>
+  </main>
     {% include 'incl/_footer.html' %}
     <script>
         function getCookie(name) {

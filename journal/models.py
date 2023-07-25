@@ -185,3 +185,26 @@ class VisitFix(models.Model):
         verbose_name = "Посещение"
         verbose_name_plural = "Посещение"
         ordering = ['date']      
+
+class Computers(models.Model):
+    articul = models.CharField(max_length=10, verbose_name='Номер')
+    metka = models.CharField(max_length=3, null=True, blank=True, verbose_name='Метка')
+    manufacture = models.CharField(max_length=20, verbose_name='Производитель')
+    model = models.CharField(max_length=20, null=True, blank=True, verbose_name='Модель')
+    os = models.CharField(max_length=60, verbose_name='Операционная система')
+    cpu = models.CharField(max_length=30, verbose_name='Процессор')
+    cpu_mark = models.CharField(max_length=30, null=True, blank=True, verbose_name='Модель процессора')
+    cpu_hash = models.CharField(max_length=10, null=True, blank=True, verbose_name='Кеш памяти')
+    cpu_takt = models.CharField(max_length=20, null=True, blank=True, verbose_name='Тактовая частота')
+    cpu_shin = models.CharField(max_length=20, null=True, blank=True, verbose_name='Частота шины')
+    ozu = models.CharField(max_length=60, verbose_name='Оперативная память')
+    hdd_sdd = models.CharField(max_length=160, verbose_name='Диски')
+    note = models.CharField(max_length=60, null=True, blank=True, verbose_name='Состояние')
+    id_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Филиал')
+    date_start = models.DateField(verbose_name='Дата покупки/начала эксплуатации')
+    data_service = models.DateField(verbose_name='Последнее обслуживание')
+
+    class Meta:
+        verbose_name = "Ноутбук"
+        verbose_name_plural = "Ноутбуки"
+        ordering = ['manufacture', 'id_branch']

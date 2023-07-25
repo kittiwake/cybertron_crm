@@ -25,6 +25,7 @@
         <th scope="col">Фамилия</th>
         <th scope="col">Предмет</th>
         <th scope="col">Филиал</th>
+        {% if perms.journal.add_booking %}
         {% if course and br%}
         {% for t in tt %}
         <td scope="col">
@@ -32,6 +33,7 @@
           <p>{{ t.timetb }}</p>
         </td>
         {% endfor %}
+        {% endif %}
         {% endif %}
       </tr>
     </thead>
@@ -45,6 +47,7 @@
         </td>
         <td scope="col">{{ t.id_timetable.id_branch }}</td>
 
+        {% if perms.journal.add_booking %}
         {% if course and br%}
         {% for tb in tt %}
         <td scope="col">
@@ -56,11 +59,12 @@
               <input type="hidden" name="id_booking" value="{{ t.id }}">
               <button type="submit" class="btn btn-success btn-sm">Отменить</button>
           </form>
-
+          
           {% endif %}
         </td>
         {% endfor %}
-        {% endif %}      
+        {% endif %}   
+        {% endif %}   
       </tr>
       {% endfor %}
 
@@ -69,11 +73,14 @@
       <thead class="table-light">
       <tr>
         <td colspan="3">Варианты былые</td>
+        
+        {% if perms.journal.add_booking %}
         {% if course and br%}
         {% for tb in tt %}
         <th></th>
         {% endfor %}
-        {% endif %}      
+        {% endif %}  
+        {% endif %}     
       </tr>
       </thead>
 
@@ -85,6 +92,7 @@
         </td>
         <td scope="col">{{ t.id_timetable_id__id_branch__title }}</td>
 
+        {% if perms.journal.add_booking %}
         {% if course and br%}
         {% for tb in tt %}
         <form action="" method="post">
@@ -101,6 +109,7 @@
         </form>
   {% endfor %}
         {% endif %}
+        {% endif %}
       </tr>
       {% endfor %}
 
@@ -109,10 +118,12 @@
       <thead class="table-light">
       <tr>
         <td colspan="3">Новички</td>
+        {% if perms.journal.add_booking %}
         {% if course and br%}
         {% for tb in tt %}
         <th></th>
         {% endfor %}
+        {% endif %}      
         {% endif %}      
       </tr>
       </thead>
@@ -134,7 +145,8 @@
                 Выберите филиал
                 {% endif %}
               </td>
-      
+
+              {% if perms.journal.add_booking %}
               {% if course and br%}
               {% for tb in tt %}
               <form action="" method="post">
@@ -151,6 +163,7 @@
               </form>
 
               {% endfor %}
+              {% endif %}
               {% endif %}
             </tr>
             {% endfor %}

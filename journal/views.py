@@ -11,6 +11,7 @@ from .models import *
 from .forms import *
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import permission_required
 from django.db.models.aggregates import Max, Sum
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models import F
@@ -590,4 +591,30 @@ class VisitorsView(View):
 
         return redirect(f'/visitors/{br_id}/{course}')
 
+class ComputersView(ListView):
+    model = Computers
+    # form_class = AddCourseForm
+    success_url = ''
+
+    def get(self, request, *args, **kwargs):        
+        if not request.user.is_authenticated:
+            return redirect('login')
+        else:
+            return super(self.__class__, self).get(self, request, *args, **kwargs)
+        
+    def get_queryset(self):
+        return Computers.objects.all()
+    
+    # def get_context_data(self, **kwargs):
+    #     context = super(self.__class__, self).get_context_data(**kwargs)
+    #     context['form'] = self.form_class()
+    #     return context
+
+    # def post(self, request):
+    #     form = self.form_class(request.POST)
+    #     if form.is_valid():
+    #         form.save()
+    #         return HttpResponseRedirect(self.success_url)
+    #     else:
+    #         return self.get(request)
 

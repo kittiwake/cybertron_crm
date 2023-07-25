@@ -23,4 +23,5 @@ urlpatterns = [
     path('<int:pk>/delete', DellWorkingTimeView.as_view(), name='journal-delete'),
     path('workingtime/price', TeacherSizePaidView.as_view(),name='price'),
     path('workingtime/paying', SalaryView.as_view(),name='salary'),
+    path('laptop/', ComputersView.as_view(),name='laptop'),
 ]

@@ -42,7 +42,8 @@ class Teacher(models.Model):
     last_name = models.CharField(max_length=150, verbose_name='Фамилия')
     contact = models.CharField(max_length=150, verbose_name='Номер телефона')
     user_id = models.ForeignKey(User, related_name='user', on_delete=models.SET_NULL, null=True, blank=True, )
-    tg_name = models.CharField(max_length=150, verbose_name='Имя Telegram', blank=True, null=True, unique=True)
+    tg_name_regex = RegexValidator(regex=r"^@.+", message=("Enter a valid user name"))
+    tg_name = models.CharField(validators=[tg_name_regex], max_length=150, verbose_name='Имя Telegram', blank=True, null=True, unique=True)
     tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=True)
 

@@ -273,8 +273,12 @@ class TeacherView(View):
         print(request)
         if request.POST['action'] == 'add':
             form = AddTeacherForm(request.POST)
-            form.save()
-
+            if form.is_valid():
+                form.save()
+            else:
+                print(form.errors)
+                return render(request,'journal/teacherform.html', {'form': form})
+            
         if request.POST['action'] == 'del':
             pk = request.POST['pk']
             bob = Teacher.objects.get(id=pk)

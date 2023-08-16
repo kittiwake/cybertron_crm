@@ -40,9 +40,10 @@ class Branch(models.Model):
 class Teacher(models.Model):
     first_name = models.CharField(max_length=150, verbose_name='Имя')
     last_name = models.CharField(max_length=150, verbose_name='Фамилия')
-    contact = models.CharField(max_length=150, verbose_name='Номер телефона')
+    phone_regex = RegexValidator(regex=r"^\+7([0-9]){9}[0-9]$", message=("Номер телефона введен некорректный"))
+    contact = models.CharField(validators=[phone_regex], max_length=150, verbose_name='Номер телефона')
     user_id = models.ForeignKey(User, related_name='user', on_delete=models.SET_NULL, null=True, blank=True, )
-    tg_name_regex = RegexValidator(regex=r"^@.+", message=("Enter a valid user name"))
+    tg_name_regex = RegexValidator(regex=r"^@.+", message=("Проверьте правильность ввода имени пользователя"))
     tg_name = models.CharField(validators=[tg_name_regex], max_length=150, verbose_name='Имя Telegram', blank=True, null=True, unique=True)
     tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=True)
@@ -91,7 +92,7 @@ class Client(models.Model):
     guardian = models.CharField(max_length=200, verbose_name='Родитель') #попечитель
     birthday = models.DateField(verbose_name='Дата рождения')
     address = models.CharField(verbose_name='Место проживания', max_length=200, default='МО')
-    phone_regex = RegexValidator(regex=r"^\+(?:[0-9]●?){6,14}[0-9]$", message=("Enter a valid international mobile phone number starting with +(country code)"))
+    phone_regex = RegexValidator(regex=r"^\+7([0-9]){9}[0-9]$", message=("Номер телефона введен некорректный"))
     mobile_phone = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True, verbose_name='Контакт')
     tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
     active = models.BooleanField(default=True, verbose_name='Активный')

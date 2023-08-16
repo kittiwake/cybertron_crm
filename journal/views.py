@@ -516,7 +516,10 @@ class VisitorsView(View):
 
         # получить расписание только для текущего препода
         user = request.user
-        teacher = Teacher.objects.get(user_id=user)
+        try:
+            teacher = Teacher.objects.get(user_id=user)
+        except:
+            return redirect('teacherlist')
 
         tt = Timetable.objects.filter(active=True).filter(id_teacher = teacher)
 

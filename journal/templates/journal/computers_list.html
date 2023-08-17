@@ -29,9 +29,9 @@
         <th scope="row">{{ forloop.counter }}</th>
         <td>{{ comp.articul}}</td>
         <td>{{ comp.manufacture}} {{ comp.model}} {{ comp.metka}}</td>
-        <td>{{ comp.cpu}} {{ comp.cpu_mark}} {{ comp.cpu_hash}} {{ comp.cpu_takt}} {{ comp.cpu_shin}}</td>
+        <td>{{ comp.cpu}} </td>
         <td>{{ comp.ozu}}</td>
-        <td>{{ comp.mobile_phone}}</td>
+        <td>{{ comp.hdd_sdd}}</td>
 
         <td>{{ comp.os}}</td>
         <td>{{ comp.note}}</td>
@@ -46,74 +46,6 @@
     </tbody>
     {% endfor %}
   </table>
-
-  {% if perms.journal.add_client %}
-  {% if form %}
-  <div class="bg-primary text-white">
-    <h6>Добавить ученика</h6>
-    </div>
-  <form method="post" class="row g-3">
-    {% csrf_token %}
-
-{{ form.media }}
-<!-- 'surname', 'name', 'birthday', 'guardian', 'mobile_phone', 'address' -->
-      <div class="col-12 bg-light">
-        <div class="row">
-          <div class="col-5">
-            <label for="{{ form.surname.id_for_label }}" class="form-label">{{ form.surname.label }}</label>
-            {{ form.surname }}
-            <div class="invalid-feedback">
-              {{ form.surname.errors }}
-            </div>  
-          </div>
-          <div class="col-5">
-            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
-            {{ form.name }}
-            <div class="invalid-feedback">
-              {{ form.name.errors }}
-            </div>  
-          </div>
-          <div class="col-2">
-            <label for="{{ form.birthday.id_for_label }}" class="form-label">{{ form.birthday.label }}</label>
-            {{ form.birthday }}
-            <div class="invalid-feedback">
-              {{ form.birthday.errors }}
-            </div>  
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-5">
-            <label for="{{ form.guardian.id_for_label }}" class="form-label">{{ form.guardian.label }}</label>
-          {{ form.guardian }}
-            <div class="invalid-feedback">
-              {{ form.guardian.errors }}
-            </div>  
-          </div>
-          <div class="col-5">
-            <label for="{{ form.mobile_phone.id_for_label }}" class="form-label">{{ form.mobile_phone.label }}</label>
-            {{ form.mobile_phone }}
-            <div class="invalid-feedback">
-              {{ form.mobile_phone.errors }}
-            </div>  
-          </div>
-        </div>  
-        <div class="row">
-          <div class="col-6">
-            <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
-            {{ form.address }}
-            <div class="invalid-feedback">
-              {{ form.address.errors }}
-            </div>  
-          </div>
-          <div class="col-2">
-            <input type="submit" class="btn btn-primary" value="Добавить">
-          </div>    
-        </div>  
-      </div>
-
-  </form>
-  {% endif %}
-  {% endif %}
 
 
 {% endblock content %}

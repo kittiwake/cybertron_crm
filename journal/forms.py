@@ -159,3 +159,4 @@ class AddPayingForm(forms.ModelForm):
             'summ': forms.TextInput(attrs={'size': '3', 'placeholder': 'сумма'}), 
             'subscription': forms.NumberInput(attrs={'size': '2'}),
         }
+

@@ -108,7 +108,7 @@ def check_name(message: Message):
 def enter_login(message: Message, teacher: Teacher):
     login = message.text
     # Проверка валидности
-    if not re.fullmatch(r'[(0-9a-zA-Z_-)]{5,}', login):
+    if not re.fullmatch(r'[0-9a-zA-Z_-]{5,}', login):
         bot.send_message(chat_id=message.chat.id, text=f'''Имя пользавателя должно включать не меньше 5 латинских символов, цифр, дефис и знак подчеркивания. Попробуйте еще раз''')
         bot.register_next_step_handler(message, enter_login, teacher=teacher)
     # проверка уникальности

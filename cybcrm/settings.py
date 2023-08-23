@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-b1tj85u2(env!m
 # DEBUG = True
 DEBUG = bool( os.environ.get('DJANGO_DEBUG', True) )
 
-ALLOWED_HOSTS = ['localhost', '84.38.182.184', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '185.250.44.88', '127.0.0.1']
 
 LOGOUT_REDIRECT_URL = '/'
 
@@ -79,23 +79,23 @@ WSGI_APPLICATION = 'cybcrm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'NAME': os.environ.get('DB_NAME', 'myproject'),
-        'USER': os.environ.get('DB_USER', 'myprojectuser'),
-        'PASSWORD': os.environ.get('DB_PASS', 'zpxocivu'),
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'HOST': os.environ.get('DB_HOST', 'localhost'),
+#         'NAME': os.environ.get('DB_NAME', 'myproject'),
+#         'USER': os.environ.get('DB_USER', 'myprojectuser'),
+#         'PASSWORD': os.environ.get('DB_PASS', 'zpxocivu'),
+#         'PORT': '',
+#     }
+# }
 
 
 # Password validation
@@ -144,4 +144,4 @@ LOGIN_REDIRECT_URL = '/'
 
 # настройки telegram бота
 # TELEGRAM_BOT_API_KEY = '6061809968:AAGyCFw4cO4s_P2v5IzF6Cs76Cx38pVCTjU'
-TELEGRAM_BOT_API_KEY = os.environ.get('TELEGRAM_BOT_API_KEY', '6061809968:AAGyCFw4cO4s_P2v5IzF6Cs76Cx38pVCTjU')
+TELEGRAM_BOT_API_KEY = os.environ.get('TELEGRAM_BOT_API_KEY', '6508024191:AAHKznCEu3epmvxfO_c2u4gWSDa4j6lK3T0')

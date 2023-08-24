@@ -24,4 +24,5 @@ urlpatterns = [
     path('workingtime/price', TeacherSizePaidView.as_view(),name='price'),
     path('workingtime/paying', SalaryView.as_view(),name='salary'),
     path('laptop/', ComputersView.as_view(),name='laptop'),
+    path('import/', ImportView.as_view(),name='import'),
 ]

@@ -160,3 +160,5 @@ class AddPayingForm(forms.ModelForm):
             'subscription': forms.NumberInput(attrs={'size': '2'}),
         }
 
+class ImportExcel(forms.Form):
+    file = forms.FileField()

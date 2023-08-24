@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if form %}
+<form method="post">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Загрузить</button>
+</form>  
+{% endif %}
+
+{% endblock content %}

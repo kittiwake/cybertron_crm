@@ -1,5 +1,6 @@
 import json
 from urllib import request
+import re
 
 # from ast import Delete
 # from calendar import week
@@ -7,8 +8,6 @@ from datetime import datetime, timedelta
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic import DeleteView, ListView
-from .models import *
-from .forms import *
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import permission_required
@@ -17,72 +16,28 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db.models import F
 from django.utils import timezone
 
-# def registerPage(request):    
-#     if request.method == 'POST':
-#         profile_form = createUserForm(request.POST)
+from .models import *
+from .forms import *
+from .tools import *
 
-#         if profile_form.is_valid():
-#             user = profile_form.save()
+def reg_exp_phone(input_data):
+    # 79263441280
+    # +79253441280
+    # 9253441280
+    # 89253441280
+    # 8-925-344-12-80
+    # (925)344-1280
 
-#             #we don't save the profile_form here because we have to first get the value of profile_form, assign the user to the OneToOneField created in models before we now save the profile_form. 
+    # убрать все не цифры
+    inp = re.sub(r'\D', '', input_data)
+    if len(inp) == 11:
+        return '7' + inp[1:]
+    if len(inp) == 10:
+        return '7' + inp
+    return input_data
 
-#             messages.success(request,  'Your account has been successfully created')
-
-#             return redirect('/')
-#         # pass
-#     else:
-#         profile_form = createUserForm()
-
-
-#     # context = {'form': form, 'profile_form': profile_form}    
-#     context = {'profile_form': profile_form}    
-#     return render(request, 'journal/register.html', context)
-
-# def registerNamePage(request):    
-#     if request.method == 'POST':
-#         change_form =changeUserForm(request.POST)
-
-#         if change_form.is_valid():
-#             save_name = change_form.save()
-
-#             #we don't save the profile_form here because we have to first get the value of profile_form, assign the user to the OneToOneField created in models before we now save the profile_form. 
-
-#             messages.success(request,  'Your account has been successfully created')
-
-#             return redirect('login')
-#         # pass
-#     else:
-#         change_form = changeUserForm()
-
-
-#     # context = {'form': form, 'profile_form': profile_form}    
-#     context = {'change_form':change_form}    
-#     return render(request, 'journal/change_name.html', context)
-
-# class RegisterView(View):
-
-#     template_name = 'registration/register.html'
-
-#     def get(self, request):
-#         context = {
-#             'form': UserCreationForm
-#         }
-#         return render(request, self.template_name, context)
-    
-#     def post(self, request):
-#         form = UserCreationForm(request.POST)
-#         if form.is_valid():
-#             form.save() 
-#             un = form.cleaned_data.get('username')
-#             up = form.cleaned_data.get('password1')
-#             user = authenticate(username=un, password=up)
-#             login(request, user)
-
-#             return redirect('timetable')
-#         context = {
-#             'form': form
-#         }
-#         return render(request, self.template_name, context)
+def reg_exp_telegram(input_data):
+    return input_data.lstrip('@').replace('https://t.me/', '')
 
 class BranchView(ListView):
     model = Branch
@@ -261,6 +216,8 @@ class TeacherView(View):
         new = Teacher.objects.filter(is_active=True, user_id=None)
 
         form = AddTeacherForm()
+        if request.POST:
+            form = AddTeacherForm(request.POST)
 
         return render(request,'journal/teacherlist.html', {'active': active, 
                                                            'notactive':notactive,
@@ -270,14 +227,25 @@ class TeacherView(View):
     
 
     def post(self, request):
-        print(request)
         if request.POST['action'] == 'add':
-            form = AddTeacherForm(request.POST)
+            data = {}
+            data['first_name'] = request.POST['first_name']
+            data['last_name'] = request.POST['last_name']
+            data['contact'] = request.POST['contact']
+            data['tg_name'] = request.POST['tg_name']
+
+            form = AddTeacherForm(data)
             if form.is_valid():
                 form.save()
             else:
-                print(form.errors)
-                return render(request,'journal/teacherform.html', {'form': form})
+                data['contact'] = reg_exp_phone(data['contact'])
+                data['tg_name'] = reg_exp_telegram(data['tg_name'])
+                form = AddTeacherForm(data)
+                if form.is_valid():
+                    form.save()
+                else:
+                    print('form error')
+                    return self.get(request)
             
         if request.POST['action'] == 'del':
             pk = request.POST['pk']
@@ -600,7 +568,7 @@ class VisitorsView(View):
 
 class ComputersView(ListView):
     model = Computers
-    # form_class = AddCourseForm
+    # form_class = AddComputerForm
     success_url = ''
 
     def get(self, request, *args, **kwargs):        
@@ -612,16 +580,31 @@ class ComputersView(ListView):
     def get_queryset(self):
         return Computers.objects.all()
     
-    # def get_context_data(self, **kwargs):
-    #     context = super(self.__class__, self).get_context_data(**kwargs)
-    #     context['form'] = self.form_class()
-    #     return context
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            form.save()
+            
+        return self.get(request)
 
-    # def post(self, request):
-    #     form = self.form_class(request.POST)
-    #     if form.is_valid():
-    #         form.save()
-    #         return HttpResponseRedirect(self.success_url)
-    #     else:
-    #         return self.get(request)
+class ImportView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        elif not request.user.is_superuser:
+            return redirect('/')
+        form = ImportExcel()
+        data = {'form': form}
+        return render(request,'journal/import.html',data)
 
+    def post(self, request):
+        if request.POST:
+            file = request.FILES.get('file')
+            uploading_file = Import({"file": file})
+            result = uploading_file.add_teachers()
+            if not result:
+                messages.success(request, 'Успешная загрузка')
+        else:
+            for error in result:
+                messages.error(request, error)
+        return self.get(request)

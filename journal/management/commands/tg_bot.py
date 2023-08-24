@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 # https://www.youtube.com/@it_everyday/videos - посмотреть
 
 bot = TeleBot(settings.TELEGRAM_BOT_API_KEY, threaded=False)
-
+reg = False
 
 @bot.message_handler(commands=['start'])
 def start(message: Message):
@@ -25,6 +25,7 @@ def start(message: Message):
                      text='Здравствуйте!',
                      reply_markup=markup)
     
+        
 @bot.callback_query_handler(func=lambda callback: True)
 def on_click(callback):
     # print(callback)
@@ -32,33 +33,39 @@ def on_click(callback):
         start_teacher(callback.message)
 
 def start_teacher(message: Message):
+    global reg
     reg = True
     try:
         teacher = Teacher.objects.get(tg_id=message.chat.id)
         if teacher.user_id:
             bot.send_message(chat_id=message.chat.id, 
-                            text=f'''Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте.
-                                Если хотите сменить логин/пароль, введите команду /reset''')
+                            text=f'''Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. Если хотите сменить логин/пароль, введите команду /reset''')
             reg = False
         else:
             bot.send_message(chat_id=message.chat.id, 
                             text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Пройдите регистрацию')
+            bot.send_message(chat_id=message.chat.id, 
+                            text=f'Для регистрации на сайте введите логин.')
+            bot.register_next_step_handler(message, enter_login, teacher=teacher)
 
     except ObjectDoesNotExist:
         
         # получить юзернейм, найти в базе
         try:
-            teacher = Teacher.objects.get(tg_name=message.chat.username)
+            teacher = Teacher.objects.get(tg_name="@"+message.chat.username)
             teacher.tg_id = message.chat.id
             teacher.save()
             if teacher.user_id:
                 bot.send_message(chat_id=message.chat.id, 
-                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. \
-                                    Если хотите сменить логин/пароль, введите команду /reset')
+                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. Если хотите сменить логин/пароль, введите команду /reset')
                 reg = False
             else:
                 bot.send_message(chat_id=message.chat.id, 
                                 text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Пройдите регистрацию')
+                bot.send_message(chat_id=message.chat.id, 
+                                text=f'Для регистрации на сайте введите логин.')
+                bot.register_next_step_handler(message, enter_login, teacher=teacher)
+
             
         except ObjectDoesNotExist:
             
@@ -67,59 +74,64 @@ def start_teacher(message: Message):
                 teacher = teachers[0]
                 del teachers
                 teacher.tg_id = message.chat.id
-                teacher.save()
+                # teacher.save()
                 bot.send_message(chat_id=message.chat.id, 
                                 text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Пройдите регистрацию')
+                bot.send_message(chat_id=message.chat.id, 
+                                text=f'Для регистрации на сайте введите логин.')
+                print('login')
+                bot.register_next_step_handler(message, enter_login, teacher=teacher)
             else:
-                reg = False
                 bot.send_message(chat_id=message.chat.id, 
                                 text='К сожалению, я не могу идентифицировать Вас по имени пользователя. Введите Вашу фамилию')
                 bot.register_next_step_handler(message, check_name)
-    if reg:
-        # запрос логина и пароля
-        bot.send_message(chat_id=message.chat.id, 
-                        text=f'Для регистрации на сайти введите логин.')
-        bot.register_next_step_handler(message, enter_login, teacher=teacher)
 
 def check_name(message: Message):
     teacher = Teacher.objects.filter(tg_id__isnull=True).filter(last_name=message.text.capitalize())
-    reg = False
     if not teacher:
         bot.reply_to(message=message, 
                      text='Я не нашел такой фамилии в списке преподавателей. Возможно, в наборе была допущена ошибка.\n\n\
 Проверьте свой ввод и если нужно, повторите сначала. Если ошибок не было допущено, обратитесь к администратору')
+        reg = False
     elif len(teacher) == 1:
-        reg = True
         teacher[0].tg_id = message.chat.id
         teacher[0].tg_name = message.chat.username
         teacher[0].save()
         bot.send_message(chat_id=message.chat.id, 
                         text=f'Здравствуйте, {teacher[0].last_name} {teacher[0].first_name}. Пройдите регистрацию')
-    else:
-        bot.reply_to(message=message, 
-                     text='''К сожалению, я не могу идентифицировать Вас по фамилии. Создайте имя пользователя в телеграм
-и передайте его администратору.''')
-    if reg:
-        # запрос логина и пароля
         bot.send_message(chat_id=message.chat.id, 
                         text=f'Для регистрации в портале введите логин.')
         bot.register_next_step_handler(message, enter_login, teacher=teacher[0])
 
+    else:
+        bot.reply_to(message=message, 
+                     text='''К сожалению, я не могу идентифицировать Вас по фамилии. Создайте имя пользователя в телеграм и передайте его администратору.''')
+
 def enter_login(message: Message, teacher: Teacher):
     login = message.text
+    print(message.entities)
+    if message.entities:
+        print('stoped')
+        return
+    print(login)
     # Проверка валидности
     if not re.fullmatch(r'[0-9a-zA-Z_-]{5,}', login):
         bot.send_message(chat_id=message.chat.id, text=f'''Имя пользавателя должно включать не меньше 5 латинских символов, цифр, дефис и знак подчеркивания. Попробуйте еще раз''')
         bot.register_next_step_handler(message, enter_login, teacher=teacher)
     # проверка уникальности
-    if User.objects.filter(username=login)[0]:
+    elif User.objects.filter(username=login):
         bot.send_message(chat_id=message.chat.id, text=f'Такой логин уже существует. Попробуйте еще раз')
         bot.register_next_step_handler(message, enter_login, teacher=teacher)
-    bot.send_message(chat_id=message.chat.id, 
-                text=f'Введите пароль.')
-    bot.register_next_step_handler(message, enter_password, teacher=teacher, login=login)
+    else:
+        bot.send_message(chat_id=message.chat.id, 
+                    text=f'Введите пароль.')
+        print('Password')
+        bot.register_next_step_handler(message, enter_password, teacher=teacher, login=login)
 
 def enter_password(message: Message, teacher: Teacher, login: str):
+    if not reg:
+        return
+    print('passed')
     try:
         user = User.objects.create(username=login)
         user.set_password(message.text)

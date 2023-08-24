@@ -36,7 +36,17 @@
         <ul class="list-unstyled">
           <li class="mb-2"><a href="{% url 'laptop' %}">Ноутбуки</a></li>
         </ul>
+
+{% if user.is_superuser %}
+        <h5>Доп. инструмент</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="{% url 'import' %}">Импорт</a></li>
+        </ul>
+{% endif %}
+
       </div>
+
+      {% if perms.journal.add_salary %}
       <div class="col-6 col-lg-2 mb-3">
         <h5>Директору</h5>
         <ul class="list-unstyled">
@@ -45,6 +55,7 @@
           <li class="mb-2"><a href="{% url 'paying' %}">Оплата занятий</a></li>
         </ul>
       </div>
+      {% endif %}
     </div>
   </div>
 </footer>

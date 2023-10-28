@@ -9,7 +9,9 @@
         <th scope="col">#</th>
         <th scope="col">Филиал</th>
         <th scope="col">Адрес</th>
+        {% if perms.journal.add_client %}
         <th scope="col">Действия</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody class="table-group-divider">
@@ -18,7 +20,9 @@
         <th scope="row">{{ forloop.counter }}</th>
         <td>{{ fil.title}}</td>
         <td>{{ fil.address}}</td>
+        {% if perms.journal.add_client %}
         <td>кнопки</td>
+        {% endif %}
       </tr>
     </tbody>
     {% endfor %}

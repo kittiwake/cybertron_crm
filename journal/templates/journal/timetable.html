@@ -3,9 +3,16 @@
 
 {% block sidebar %}
   <ul class="list-group">
-    <a href="{% url 'timetable' %}" class="list-group-item list-group-item-action">Все</a>
+    <a href="{% url 'brtimetable' 0 b %}" class="list-group-item list-group-item-action">Все</a>
+    {% for tea in teachers %}
+    <a href="{% url 'brtimetable' tea.pk b %}" class="list-group-item list-group-item-action">{{ tea }}</a>
+    {% endfor %}
+  </ul>
+
+  <ul class="list-group">
+    <a href="{% url 'brtimetable' t 0 %}" class="list-group-item list-group-item-action">Все</a>
     {% for brch in branchs %}
-    <a href="{% url 'brtimetable' brch.pk %}" class="list-group-item list-group-item-action">{{ brch }}</a>
+    <a href="{% url 'brtimetable' t brch.pk %}" class="list-group-item list-group-item-action">{{ brch }}</a>
     {% endfor %}
   </ul>
 {% endblock  %}

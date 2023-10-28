@@ -24,7 +24,7 @@ class TeacherJournalAdmin(admin.ModelAdmin):
 
 
 class PayingAdmin(admin.ModelAdmin):
-    list_display = ('id_client', 'id_course','id_branch','date','summ','subscription')
+    list_display = ('id_client', 'date','summ','subscription','used_lesson')
     list_filter = ('id_course', 'id_branch')
 
 

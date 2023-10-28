@@ -8,9 +8,9 @@
           <span class="fs-5">Bootstrap</span>
         </a>
         <ul class="list-unstyled small text-muted">
-          <li class="mb-2">Designed and built with all the love in the world by the <a href="/docs/5.2/about/team/">Bootstrap team</a> with the help of <a href="https://github.com/twbs/bootstrap/graphs/contributors">our contributors</a>.</li>
-          <li class="mb-2">Code licensed <a href="https://github.com/twbs/bootstrap/blob/main/LICENSE" target="_blank" rel="license noopener">MIT</a>, docs <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li>
-          <li class="mb-2">Currently v5.2.0.</li>
+          <li class="mb-2"></li>
+          <li class="mb-2"><span class="fs-5">ClassCRM</span></li>
+          <li class="mb-2">Currently v1.0</li>
         </ul>
       </div>
       <div class="col-6 col-lg-2 offset-lg-1 mb-3">
@@ -19,7 +19,9 @@
           <li class="mb-2"><a href="{% url 'timetable' %}">Расписание</a></li>
           <li class="mb-2"><a href="{% url 'client' %}">Списки</a></li>
           <li class="mb-2"><a href="{% url 'visitors' 0 0%}">Журнал посещений</a></li>
+          {% if perms.journal.add_booking %}
           <li class="mb-2"><a href="{% url 'booking' 0 0%}">Бронь</a></li>
+          {% endif %}
         </ul>
       </div>
       <div class="col-6 col-lg-2 mb-3">

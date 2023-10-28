@@ -144,7 +144,7 @@ class LoginView(View):
 
 class TimetableView(View):
 
-    def get(self,request,br_id=0,t_id=0):
+    def get(self,request,t_id=0,br_id=0):
 
         if not request.user.is_authenticated:
             return redirect('login')
@@ -160,23 +160,41 @@ class TimetableView(View):
 #        for dw in allweek:
 #            d['dw'] = Timetable.objects.filter('day_of_week'==dw)
 #        tt = Timetable.objects.filter(day_of_week__contains = 'ЧТ')
-
+        teachers = Teacher.objects.filter(is_active=True)
         branchs = Branch.objects.all()
         form = AddTimetableForm()
         
 
 #        tt = Timetable.objects.order_by('timetb','id_branch','day_of_week')
+        tt = Timetable.objects.filter(active=True)
         if br_id:
-            tt = Timetable.objects.filter(id_branch=br_id, active=True)
-        else:
-            tt = Timetable.objects.filter(active=True)
+            tt = tt.filter(id_branch=br_id)
+        if t_id:
+            tt = tt.filter(id_teacher=t_id)
+        tt = tt.order_by('timetb')
+
+        # if br_id:
+        #     tt = Timetable.objects.filter(id_branch=br_id, active=True)
+        # else:
+        #     tt = Timetable.objects.filter(active=True)
+
+
         for it in tt:
             # bbr = it.id_branch
             # if it.id_branch.title not in d[allweek.index(it.day_of_week)]['tt'].keys():
             #     d[allweek.index(it.day_of_week)]['tt'][it.id_branch.title] = []
             d[allweek.index(it.day_of_week)]['tt'].append(it)
 
-        return render(request, 'journal/timetable.html', {'title':'Расписание', 'timetable':tt, 'branchs':branchs, 'd':d, 'form':form})
+        data = {'title':'Расписание', 
+                'timetable':tt, 
+                'branchs':branchs, 
+                'teachers':teachers, 
+                't': t_id,
+                'b': br_id,
+                'd':d, 
+                'form':form}
+
+        return render(request, 'journal/timetable.html', data)
 
     def post(self, request):
         if request.POST['action'] == 'add':
@@ -274,10 +292,15 @@ class WorkingTimeView(View):
         # Salary.objects.create(**d)
 
         user = request.user
-        allwt = TeacherJournal.objects.filter(ispaid = False, id_teacher = user.id)
-        form = AddWorkingTimeForm()
+        print(user)
         
-        return render(request,'journal/workingtime.html',{'journal': allwt, 'form':form})
+        allwt = TeacherJournal.objects.filter(ispaid = False, id_teacher__user_id=user)
+
+        total = 0
+        for wt in allwt:
+            total += wt.number_hours
+        
+        return render(request,'journal/workingtime.html',{'journal': allwt, 'total':total})
 
 class AddWorkingTimeView(View):
 
@@ -337,7 +360,8 @@ class SalaryView(View):
         wt = TeacherJournal.objects.filter(ispaid=False)
         for item in wt:
             r = Salary.objects.filter(date_of_activate__lte=item.date_of_visit, id_teacher=item.id_teacher).order_by('date_of_activate').last()
-            item.last_sum = r.last_sum
+
+            item.last_sum = r.last_sum  if r else 0
             item.total = item.last_sum * item.number_hours
             data[item.id_teacher.id]['tt'].append(item)
         content = {
@@ -395,14 +419,20 @@ class BookingView(View):
         # достать все записи из посещений по id_tt
         visits = VisitFix.objects.filter(id_timetable__in=tt)
         booking = visits.filter(date__gte=datetime.today()).filter(reserv=True)
-        visits = visits.filter(date__lt=datetime.today()).values(
+        booking_lst = [x.id_client.id for x in booking]
+        visits_last = visits.filter(date__lt=datetime.today()).values(
             'id_client__id',
             'id_client__name',
             'id_client__surname',
             'id_timetable_id__id_course__title',
             'id_timetable_id__id_branch__title',
             'id_timetable_id__timetb'
-            ).annotate(total=Max('date'))
+            ).annotate(total=Max('date')).order_by('id_client__surname')
+        
+        visits = [vis for vis in visits_last if not(vis['id_client__id'] in booking_lst)]
+        # for vis in visits_last:
+        #     print(vis['id_client__id'])
+        #     print(vis['id_client__id'] in booking_lst)
         newpeople = Client.objects.filter(active=True).order_by('surname').exclude(pk__in=VisitFix.objects.all().values('id_client'))
         data=dict()
         clients = Client.objects.filter()
@@ -491,10 +521,13 @@ class VisitorsView(View):
 
         tt = Timetable.objects.filter(active=True).filter(id_teacher = teacher)
 
-        # найти все брони на эти расписания
+        # найти все брони на эти расписания, но раньше текущего времени
 
-        booking = VisitFix.objects.filter(reserv=True, visit=False, id_timetable__id_teacher=teacher).order_by('date')
-
+        booking = VisitFix.objects.filter(reserv=True, visit=False, id_timetable__id_teacher=teacher, date__lte=datetime.now()).order_by('date')
+        if br_id:
+            booking = booking.filter(id_timetable__id_branch = br_id)
+        if course:
+            booking = booking.filter(id_timetable__id_course = course)
 
         data=dict()
         branchs = Branch.objects.all()
@@ -552,17 +585,18 @@ class VisitorsView(View):
         if request.POST['action'] == 'del':
             pk = request.POST['pk']
             bob = VisitFix.objects.get(id=pk)
-            # bob.reserv = False
-            # bob.save()
+            bob.reserv = False
+            bob.save()
 
             # запустить бота, предупредить завуча
             # проверить оплаты:
-            pay = Paying.objects.filter(id_client=bob.id_client, id_course=bob.id_timetable.id_course).last()
+            # pay = Paying.objects.filter(id_client=bob.id_client, id_course=bob.id_timetable.id_course).last()
             # если ничего не оплачено, то игнор
             # если оплачен разовый сеанс,то игнор
             # если абонемент, то предупреждать
-            if pay.subscription > 1 and pay.subscription > pay.used_lesson:
-                pass
+            # if pay:
+            #     if pay.subscription > 1 and pay.subscription > pay.used_lesson:
+            #         pass
 
         return redirect(f'/visitors/{br_id}/{course}')
 
@@ -608,3 +642,12 @@ class ImportView(View):
             for error in result:
                 messages.error(request, error)
         return self.get(request)
+
+
+
+
+
+
+# Пятница 15:00, 16:00 шашки Гриша
+# Воскресенье 11:00-13:00 математика Огэ Трохин
+# Онлайн 11:00-12:30 воскреснье Савицкий

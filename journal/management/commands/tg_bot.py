@@ -1,9 +1,10 @@
+from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from telebot import TeleBot
 import re
 from telebot.types import Message, InlineKeyboardButton,InlineKeyboardMarkup
-from journal.models import Teacher
+from journal.models import Teacher, VisitFix
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -154,6 +155,34 @@ def reset_registration(message: Message):
 def echo(message: Message):
     bot.send_message(chat_id=message.chat.id, text=message)
     # print(message.json)
+
+
+@bot.message_handler(commands=['list'])
+def echo(message: Message):
+    '''получение запланированных занятий и списка учеников'''
+    text = 'На данный момент у Вас запланированы следующие занятия:'
+    # получить список из брони, все занятия, где есть хоть 1 бронь
+    bookings = VisitFix.objects.filter(date__gte=datetime.today()).filter(reserv=True)\
+        .filter(id_timetable__id_teacher__tg_id=message.chat.id)
+    # отобрать только этого препода сортировать по дате, времени
+    lst = {}
+    for booking in bookings:
+        timestamp = datetime.timestamp(datetime.combine(booking.date, booking.id_timetable.timetb))
+
+        if timestamp < datetime.timestamp(datetime.now()):
+            continue
+        if not(timestamp in lst.keys()):
+            lst[timestamp] = []
+        lst[timestamp].append(booking.id_client.surname + ' ' + booking.id_client.name)
+
+    bot.send_message(chat_id=message.chat.id, text=text)
+    # сортируем по дате timestamp
+    for timestamp, names in sorted(lst.items()):
+        text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d-%m, %a %H:%M')}</b>\n"
+        for cl in  names:
+            text += cl + '\n'
+        bot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML')
+    
 
 # @bot.message_handler()
 # def echo(message: Message):

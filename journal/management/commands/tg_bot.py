@@ -1,4 +1,5 @@
 from datetime import datetime
+import locale
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from telebot import TeleBot
@@ -7,6 +8,7 @@ from telebot.types import Message, InlineKeyboardButton,InlineKeyboardMarkup
 from journal.models import Teacher, VisitFix
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+
 
 # Объявление переменной бота
 # https://www.youtube.com/@it_everyday/videos - посмотреть
@@ -25,13 +27,35 @@ def start(message: Message):
     bot.send_message(chat_id=message.chat.id, 
                      text='Здравствуйте!',
                      reply_markup=markup)
-    
+
+def parse_data(data):
+    data = data.split('&')
+    res = {'event': data[0]}
+    for item in data[1:]:
+        k, v = item.split('=')
+        res[k] = v
+    return res
         
 @bot.callback_query_handler(func=lambda callback: True)
 def on_click(callback):
     # print(callback)
     if callback.data == 'teacher':
         start_teacher(callback.message)
+
+    if callback.data[0] == '?':
+        data = parse_data(callback.data)
+        if data['event'] == '?present':
+            bob = VisitFix.objects.get(id=int(data['id']))
+            bob.visit = True
+            bob.save()
+            bot.delete_message(callback.message.chat.id, callback.message.message_id)
+
+        if data['event'] == '?absent':
+            bob = VisitFix.objects.get(id=int(data['id']))
+            bob.reserv = False
+            bob.save()
+            bot.delete_message(callback.message.chat.id, callback.message.message_id)
+
 
 def start_teacher(message: Message):
     global reg
@@ -40,7 +64,7 @@ def start_teacher(message: Message):
         teacher = Teacher.objects.get(tg_id=message.chat.id)
         if teacher.user_id:
             bot.send_message(chat_id=message.chat.id, 
-                            text=f'''Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. Если хотите сменить логин/пароль, введите команду /reset''')
+                            text=f'''Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. Для ознакомления с возможностями введите команду /info''')
             reg = False
         else:
             bot.send_message(chat_id=message.chat.id, 
@@ -58,7 +82,7 @@ def start_teacher(message: Message):
             teacher.save()
             if teacher.user_id:
                 bot.send_message(chat_id=message.chat.id, 
-                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. Если хотите сменить логин/пароль, введите команду /reset')
+                                text=f'Здравствуйте, {teacher.last_name} {teacher.first_name}. Вы зарегистрированы на сайте. Для ознакомления с возможностями введите команду /info')
                 reg = False
             else:
                 bot.send_message(chat_id=message.chat.id, 
@@ -153,36 +177,65 @@ def reset_registration(message: Message):
 
 @bot.message_handler(commands=['info'])
 def echo(message: Message):
-    bot.send_message(chat_id=message.chat.id, text=message)
+    text = 'Для работы используйте следующие команды: \n'
+    text += '/list - получить списки учеников на ближайшие занятия\n'
+    text += '/visit - отметить присутствующих\n'
+    bot.send_message(chat_id=message.chat.id, text=text)
     # print(message.json)
 
+
+def get_booking(tg_id, past=False):
+    if past:
+        bookings = VisitFix.objects.filter(date__lte=datetime.today()).filter(reserv=True)\
+                .filter(visit=False).filter(id_timetable__id_teacher__tg_id=tg_id)
+    else:
+        bookings = VisitFix.objects.filter(date__gte=datetime.today()).filter(reserv=True)\
+                .filter(visit=False).filter(id_timetable__id_teacher__tg_id=tg_id)
+    # отобрать только этого препода сортировать по дате, времени
+    lst = {}
+    for booking in bookings:
+        timestamp = datetime.timestamp(datetime.combine(booking.date, booking.id_timetable.timetb))
+
+        if not past and timestamp < datetime.timestamp(datetime.now()):
+            continue
+        if past and timestamp > datetime.timestamp(datetime.now()):
+            continue
+        if not(timestamp in lst.keys()):
+            lst[timestamp] = []
+        lst[timestamp].append((booking.pk, booking.id_client.surname + ' ' + booking.id_client.name))
+    return lst
 
 @bot.message_handler(commands=['list'])
 def echo(message: Message):
     '''получение запланированных занятий и списка учеников'''
     text = 'На данный момент у Вас запланированы следующие занятия:'
     # получить список из брони, все занятия, где есть хоть 1 бронь
-    bookings = VisitFix.objects.filter(date__gte=datetime.today()).filter(reserv=True)\
-        .filter(id_timetable__id_teacher__tg_id=message.chat.id)
-    # отобрать только этого препода сортировать по дате, времени
-    lst = {}
-    for booking in bookings:
-        timestamp = datetime.timestamp(datetime.combine(booking.date, booking.id_timetable.timetb))
-
-        if timestamp < datetime.timestamp(datetime.now()):
-            continue
-        if not(timestamp in lst.keys()):
-            lst[timestamp] = []
-        lst[timestamp].append(booking.id_client.surname + ' ' + booking.id_client.name)
-
+    lst = get_booking(message.chat.id)
     bot.send_message(chat_id=message.chat.id, text=text)
     # сортируем по дате timestamp
+    locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
     for timestamp, names in sorted(lst.items()):
-        text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d-%m, %a %H:%M')}</b>\n"
-        for cl in  names:
-            text += cl + '\n'
+        text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d.%m, %a, %H:%M')}</b>\n"
+        for cl in names:
+            text += cl[1] + '\n'
         bot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML')
     
+@bot.message_handler(commands=['visit'])
+def echo(message: Message):
+    '''отметить присутствовавших'''
+    lst = get_booking(message.chat.id, past=True)
+    for timestamp, names in sorted(lst.items()):
+        text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d.%m, %a, %H:%M')}</b>\n"
+        bot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML')
+        for cl in  names:
+            markup = InlineKeyboardMarkup()
+            btn1 = InlineKeyboardButton('Присутствовал',callback_data=f'?present&id={cl[0]}')
+            btn2 = InlineKeyboardButton('Отсутсвовал',callback_data=f'?absent&id={cl[0]}')
+            markup.row(btn1, btn2)
+            bot.send_message(chat_id=message.chat.id, 
+                            text=cl[1],
+                            reply_markup=markup)
+
 
 # @bot.message_handler()
 # def echo(message: Message):

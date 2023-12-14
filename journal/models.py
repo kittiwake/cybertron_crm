@@ -73,7 +73,11 @@ class Timetable(models.Model):
     timetb = models.TimeField(verbose_name = 'Время')
     duration = models.DecimalField(default=2.0,max_digits=2, decimal_places=1, verbose_name = 'Длительность')
     hours_payed = models.DecimalField(default=2.0,max_digits=2, decimal_places=1, verbose_name = 'Часов на оплату')
-    active = models.BooleanField(verbose_name = 'Включен',default=True)
+    active = models.BooleanField(verbose_name = 'Включен', default=True)
+    tg_id = models.CharField(max_length=30, null=True, blank=True)
+    sum_one = models.IntegerField(default=1100, verbose_name = 'Сумма за час')
+    sum_abon = models.IntegerField(default=4000, verbose_name = 'Абонемент')
+
 
     def __str__(self):
         return f'{self.id_course} - {self.id_branch} - {self.day_of_week} - {self.timetb}'
@@ -82,7 +86,7 @@ class Timetable(models.Model):
     class Meta:
         verbose_name = "Запись"
         verbose_name_plural = "Расписание"
-        ordering = ['id_teacher','id_course', 'id_branch', 'day_of_week',"timetb"]        
+        ordering = ['id_teacher','id_course', 'id_branch', 'day_of_week', 'timetb']        
 
 
 class Client(models.Model):
@@ -93,7 +97,7 @@ class Client(models.Model):
     address = models.CharField(verbose_name='Место проживания', max_length=200, default='МО')
     phone_regex = RegexValidator(regex=r"^7([0-9]){9}[0-9]$", message=("Номер телефона введен некорректный"))
     mobile_phone = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True, verbose_name='Контакт')
-    tg_id = models.CharField(max_length=30, null=True, blank=True, unique=True)
+    tg_id = models.CharField(max_length=30, null=True, blank=True)
     active = models.BooleanField(default=True, verbose_name='Активный')
 
     # Metadata
@@ -164,6 +168,7 @@ class Paying(models.Model):
     summ = models.IntegerField(verbose_name = 'Сумма')
     subscription = models.IntegerField(default=1, verbose_name = 'Количество занятий') #колво оплаченых занятий
     used_lesson = models.IntegerField(default=0, verbose_name = 'Использовано')
+    accepted_payment = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True, verbose_name = 'Принял')
 
 
     # Metadata
@@ -186,6 +191,11 @@ class VisitFix(models.Model):
         verbose_name = "Посещение"
         verbose_name_plural = "Посещение"
         ordering = ['date']      
+
+class PollTgbot(models.Model):
+    poll_id = models.CharField(max_length=30)
+    # options = ArrayField()  # не работает в sqlite
+    options = models.JSONField()
 
 class Computers(models.Model):
     articul = models.CharField(max_length=10, verbose_name='Номер')

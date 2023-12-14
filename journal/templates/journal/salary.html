@@ -43,13 +43,26 @@
               {{inf.date_of_visit}} 
             </td>
             <td>{{inf.id_course}} </td>
-            <td>{{inf.date_of_visit}}</td>
             <td>{{inf.last_sum}}</td>
             <td>{{inf.number_hours}}</td>
             <td class="sumtt_{{t.id}}">{{inf.total}}</td>
           </tr>
           {% endfor %}
         </table>
+        <table class="table table-secondary">
+          {% for pay in t.hp %}
+          <tr>
+            <td>
+              <input type="hidden" class="paying_{{t.id}}" value="{{pay.id}}">
+              {{pay.date}} 
+            </td>
+            <td>{{pay.id_course}} </td>
+            <td>{{pay.id_client}}</td>
+            <td class="sumhp_{{t.id}}">{{pay.summ}}</td>
+          </tr>
+          {% endfor %}
+        </table>
+
       </td>
     </tr>
   {% endfor %}
@@ -66,6 +79,12 @@
           total += Number(sum_tt[i].innerText.replace(',', '.'));
 
         }
+        let sum_hp = document.getElementsByClassName('sumhp_'+elem.dataset.teach);
+        for(let i=0; i<sum_hp.length; i++){
+          total -= Number(sum_hp[i].innerText.replace(',', '.'));
+
+        }
+
         elem.innerText=total;
       });
 

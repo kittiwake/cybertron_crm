@@ -4,7 +4,9 @@ import re
 
 # from ast import Delete
 # from calendar import week
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
+
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic import DeleteView, ListView
@@ -19,6 +21,7 @@ from django.utils import timezone
 from .models import *
 from .forms import *
 from .tools import *
+
 
 def reg_exp_phone(input_data):
     # 79263441280
@@ -299,6 +302,8 @@ class WorkingTimeView(View):
         total = 0
         for wt in allwt:
             total += wt.number_hours
+
+        
         
         return render(request,'journal/workingtime.html',{'journal': allwt, 'total':total})
 
@@ -355,7 +360,7 @@ class SalaryView(View):
         # список действующих работников
         teachers = Teacher.objects.filter(is_active=True)
         for teacher in teachers:
-            data[teacher.id] ={'id': teacher.id, 'last_name': teacher.last_name, 'first_name': teacher.first_name, 'tt': []}
+            data[teacher.id] ={'id': teacher.id, 'last_name': teacher.last_name, 'first_name': teacher.first_name, 'first_date': datetime.date.today(), 'tt': [], 'hp': []}
         # список неопл занятий
         wt = TeacherJournal.objects.filter(ispaid=False)
         for item in wt:
@@ -364,9 +369,23 @@ class SalaryView(View):
             item.last_sum = r.last_sum  if r else 0
             item.total = item.last_sum * item.number_hours
             data[item.id_teacher.id]['tt'].append(item)
+            if item.date_of_visit < data[item.id_teacher.id]['first_date']:
+                data[item.id_teacher.id]['first_date'] = item.date_of_visit
+
+
+
+        # print(data)    
+        # получить список оплат занятий на руки
+        for t_id, d in data.items():
+            pays = Paying.objects.filter(accepted_payment__pk=t_id, date__gte=d['first_date'])
+            if pays:
+                data[item.id_teacher.id]['hp'] = pays
+        print(data)
         content = {
             'data': data.values(), # список преподов, сумма к выплате, + подсписок с расшифровкой
         }
+
+
         return render(request,'journal/salary.html', content)
     
     def post(self, request):
@@ -374,7 +393,7 @@ class SalaryView(View):
         print(data)
         res = list(map(int, data['lst']))
         print(res)
-        TeacherJournal.objects.filter(pk__in=res).update(ispaid=True, date_of_paid=datetime.today())
+        TeacherJournal.objects.filter(pk__in=res).update(ispaid=True, date_of_paid=datetime.datetime.today())
         return JsonResponse({'res': res})
         
 
@@ -397,11 +416,11 @@ class BookingView(View):
 
         #даты на ближайшую неделю
         week = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
-        wd = datetime.today().weekday()
+        wd = datetime.datetime.today().weekday()
         sweek = week[wd:]+week[:wd]
         dweek = dict()
         for id in range(len(sweek)):
-            dweek[sweek[id]] = datetime.today()+timedelta(id)
+            dweek[sweek[id]] = datetime.datetime.today()+timedelta(id)
 
         ttt = []
         for t in tt:
@@ -418,9 +437,9 @@ class BookingView(View):
             ttt.append(ttd)
         # достать все записи из посещений по id_tt
         visits = VisitFix.objects.filter(id_timetable__in=tt)
-        booking = visits.filter(date__gte=datetime.today()).filter(reserv=True)
+        booking = visits.filter(date__gte=datetime.datetime.today()).filter(reserv=True)
         booking_lst = [x.id_client.id for x in booking]
-        visits_last = visits.filter(date__lt=datetime.today()).values(
+        visits_last = visits.filter(date__lt=datetime.datetime.today()).values(
             'id_client__id',
             'id_client__name',
             'id_client__surname',
@@ -523,7 +542,7 @@ class VisitorsView(View):
 
         # найти все брони на эти расписания, но раньше текущего времени
 
-        booking = VisitFix.objects.filter(reserv=True, visit=False, id_timetable__id_teacher=teacher, date__lte=datetime.now()).order_by('date')
+        booking = VisitFix.objects.filter(reserv=True, visit=False, id_timetable__id_teacher=teacher, date__lte=datetime.datetime.now()).order_by('date')
         if br_id:
             booking = booking.filter(id_timetable__id_branch = br_id)
         if course:
@@ -633,11 +652,13 @@ class ImportView(View):
 
     def post(self, request):
         if request.POST:
-            file = request.FILES.get('file')
-            uploading_file = Import({"file": file})
-            result = uploading_file.add_teachers()
-            if not result:
-                messages.success(request, 'Успешная загрузка')
+            form = ImportExcel(request.POST, request.FILES)
+            if form.is_valid():
+                file = request.FILES.get('file')
+                uploading_file = Import({"file": file})
+                result = uploading_file.add_clients()
+                if not result:
+                    messages.success(request, 'Успешная загрузка')
         else:
             for error in result:
                 messages.error(request, error)

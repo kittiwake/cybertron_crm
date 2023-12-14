@@ -62,8 +62,11 @@
             {{ form.address.errors }}
           </div>  
         </div>
-        <div class="col-2">
+        <div class="col-3">
           <input type="submit" class="btn btn-primary" value="Добавить">
+        </div>    
+        <div class="col-2">
+          <a href="{% url 'import' %}"><input type="button" class="btn btn-primary" value="Загрузить из таблицы"></a>
         </div>    
       </div>  
     </div>

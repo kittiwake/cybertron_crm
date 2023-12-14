@@ -4,7 +4,7 @@ from .models import *
 
 @admin.register(Timetable)
 class TimetableAdmin(admin.ModelAdmin):
-    list_display = ('id_teacher', 'id_course', 'id_branch', 'day_of_week', 'timetb', 'duration')
+    list_display = ('id_teacher', 'id_course', 'id_branch', 'day_of_week', 'timetb', 'duration','tg_id')
     #list_display_links = ['id_teacher', 'id_course', 'id_branch']
     #search_fields = ('id_teacher', 'id_course', 'id_branch')
     list_filter = ('id_teacher', 'id_course', 'id_branch')

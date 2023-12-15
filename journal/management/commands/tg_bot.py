@@ -394,13 +394,20 @@ def echo(message: Message):
     # получить список из брони, все занятия, где есть хоть 1 бронь
     lst = get_booking(message.chat.id)
     bot.send_message(chat_id=message.chat.id, text=text)
-    # сортируем по дате timestamp
-    locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+    # # сортируем по дате timestamp
+    # locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+    # for timestamp, names in sorted(lst.items()):
+    #     text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d.%m, %a, %H:%M')}</b>\n"
+    #     for cl in names:
+    #         text += cl[1] + '\n'
+    #     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML')
     for timestamp, names in sorted(lst.items()):
-        text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d.%m, %a, %H:%M')}</b>\n"
-        for cl in names:
-            text += cl[1] + '\n'
-        bot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML')
+        # Устанавливаем локаль только для данного блока кода
+        with locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8'):
+            text = f"<b>{datetime.fromtimestamp(timestamp).strftime('%d.%m, %a, %H:%M')}</b>\n"
+            for cl in names:
+                text += cl[1] + '\n'
+            bot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML')
     
 @bot.message_handler(commands=['visit'])
 def echo(message: Message):

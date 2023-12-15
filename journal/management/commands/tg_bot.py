@@ -433,13 +433,17 @@ def enter_pay(message: Message, teacher: Teacher, last_name=None, summa=None):
     # print(data)
     # найти в базе ученика
     if not summa:
-        summa = data[1]
         try:
-            summa = int(summa)
+            summa = data[1]
+            try:
+                summa = int(summa)
+            except:
+                bot.send_message(chat_id=message.chat.id, 
+                    text=f'Ошибка при внесении оплаты. Введите корректно информацию')
+                return
         except:
             bot.send_message(chat_id=message.chat.id, 
-                text=f'Ошибка при внесении оплаты. Введите корректно информацию')
-            return
+                text=f'Команда прерврана')
     
     if last_name:
         clients = Client.objects.filter(surname=last_name, name=data[0].capitalize())

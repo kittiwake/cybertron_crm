@@ -15,13 +15,13 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+print('BASE_DIR', '-'*5, BASE_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-b1tj85u2(env!mz)j*ho!s!-rxe)7s=fjlqx*#ri2=fq2l_b$r')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -88,11 +88,11 @@ WSGI_APPLICATION = 'cybcrm.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'NAME': os.environ.get('DB_NAME', 'myproject'),
-        'USER': os.environ.get('DB_USER', 'myprojectuser'),
-        'PASSWORD': os.environ.get('DB_PASS', 'zpxocivu'),
-        'PORT': '',
+        'HOST': 'postgres',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASS'),
+        'PORT': '5432',
     }
 }
 
@@ -132,7 +132,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATIC_URL = '/static/'
-# STATICFILES_DIRS = [STATIC_DIR]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -142,4 +141,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
 # настройки telegram бота
-TELEGRAM_BOT_API_KEY = os.environ.get('TELEGRAM_BOT_API_KEY', '6508024191:AAHKznCEu3epmvxfO_c2u4gWSDa4j6lK3T0')
+TELEGRAM_BOT_API_KEY = os.environ.get('TELEGRAM_BOT_API_KEY')

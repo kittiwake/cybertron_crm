@@ -5,6 +5,34 @@ volumes:
     pgdata:
         driver: local
 services:
+    cyb_postgres:
+# Ниже даже расписывать не хочу, насколько все просто: логин, пароль, БД, порты и т.д.
+        image: postgres:15-alpine
+        container_name: cyb_postgres
+        env_file:
+          - .env  
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+    python:
+        restart: always
+# указываем откуда собирать образ
+        build:
+          context: .
+          dockerfile: .Dockerfile
+# монтируем директорию проекта
+        volumes:
+          - .:/usr/src/cybcrm
+        expose:
+          - 8000
+        ports:
+          - 8000:8000
+        env_file:
+          - .env
+        depends_on:
+          - cyb_postgres
+          
+# запускаем gunicorn
+        command: "gunicorn -c gunicorn.py cybcrm.wsgi"
     nginx:
 # при падении будет стараться подняться
         restart: always
@@ -25,42 +53,4 @@ services:
 # и nginx зависит от контейнера python. Т.е. python должен быть запущен первым
         depends_on:
             - python
-    python:
-        restart: always
-# указываем откуда собирать образ
-        build:
-          context: .
-          dockerfile: .Dockerfile
-# монтируем директорию проекта
-        volumes:
-          - .:/usr/src/cybcrm
-        expose:
-          - 8000
-        ports:
-          - 8000:8000
-        # environment:
-        #   - DB_PORT=5432  # Добавьте эту строку
-        #   - DJANGO_DEBUG=False
-        env_file:
-          - .env
-        depends_on:
-          - postgres
-          
-# запускаем gunicorn
-        command: "gunicorn -c gunicorn.py cybcrm.wsgi"
-        # command: "gunicorn -k uvicorn.workers.UvicornWorker -c gunicorn.py cybcrm.wsgi"
-    postgres:
-# Ниже даже расписывать не хочу, насколько все просто: логин, пароль, БД, порты и т.д.
-        image: postgres:15-alpine
-        container_name: cyb_postgres
-        # ports:
-        #     - 5432:5432
-        # environment:
-        #     POSTGRES_USER: myprojectuser
-        #     POSTGRES_PASSWORD: zpxocivu
-        #     POSTGRES_DB: myproject
-        #     PGDATA: /var/lib/postgresql/data
-        env_file:
-          - .env  
-        volumes:
-            - pgdata:/var/lib/postgresql/data
+

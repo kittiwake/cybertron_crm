@@ -1,5 +1,10 @@
 #!/bin/sh
 
+while ! nc -z postgres 5432; do
+  echo "Waiting for PostgreSQL to become available..."
+  sleep 1
+done
+
 # Применяем миграции
 python manage.py migrate --no-input
 

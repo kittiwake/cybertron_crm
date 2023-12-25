@@ -4,6 +4,7 @@ version: '3.8'
 volumes:
     pgdata:
         driver: local
+        name: pgdata
 services:
     cyb_postgres:
 # Ниже даже расписывать не хочу, насколько все просто: логин, пароль, БД, порты и т.д.

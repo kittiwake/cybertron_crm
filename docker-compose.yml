@@ -22,7 +22,7 @@ services:
 # указываем откуда собирать образ
         build:
           context: .
-          dockerfile: .Dockerfile
+          dockerfile: Dockerfile
 # монтируем директорию проекта
         volumes:
           - .:/usr/src/cybcrm

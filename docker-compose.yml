@@ -48,9 +48,7 @@ services:
 # монтируем только те директории, в которых лежит статика, т.к. nginx с динамикой не будет работать. Также директорию с логами и файл настройки, который мы подготовили.
         volumes:
             - ./static:/usr/src/cybcrm/static
-            - ./media:/usr/src/cybcrm/media
             - ./logs:/usr/src/cybcrm/logs
-            - ./docker/nginx:/etc/nginx/conf.d
 # и nginx зависит от контейнера python. Т.е. python должен быть запущен первым
         depends_on:
             - python

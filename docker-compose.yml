@@ -32,7 +32,7 @@ services:
           - cyb_postgres
           
 # запускаем gunicorn
-        command: "gunicorn -c gunicorn.py cybcrm.wsgi"
+        # command: "gunicorn -c gunicorn.py cybcrm.wsgi"
     nginx:
         restart: always
         image: nginx:latest
